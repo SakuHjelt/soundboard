@@ -10,18 +10,19 @@
 <style>
 /* ===== Värit ja mitat: muokkaa näitä vapaasti ===== */
 :root {
-  --tausta: #0d0620;
-  --neon1: #ff2bd6;
-  --neon2: #00e5ff;
-  --neon3: #ffe600;
-  --stop1: #ff1f3d;
-  --stop2: #1a0008;
+  --pohja: #07080f;
+  --lasi: rgba(255,255,255,.06);
+  --lasi-reuna: rgba(255,255,255,.11);
+  --teksti: #f4f5fb;
+  --himmea: rgba(244,245,251,.45);
+  --stop1: #ff3b5c;
+  --stop2: #ff7a45;
   --rako: 16px;
   --pad-leveys: 170px;
   --pad-korkeus: 130px;
-  --pyoristys: 20px;
+  --pyoristys: 22px;
   --palkki-leveys: 60px;
-  --ylapalkki: 104px;
+  --ylapalkki: 108px;
 }
 
 * {
@@ -35,80 +36,79 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: var(--tausta);
-  color: #fff;
-  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: var(--pohja);
+  color: var(--teksti);
+  font-family: -apple-system, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- Tausta: liikkuvat läikät, sykkivät musiikin tahtiin ---------- */
-#bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0; will-change: transform; }
-.blob { position: absolute; width: 75vmax; height: 75vmax; border-radius: 50%; opacity: .45; will-change: transform; }
-.b1 { top: -25vmax; left: -25vmax; background: radial-gradient(circle, var(--neon1) 0%, rgba(255,43,214,0) 65%); animation: lipu1 13s ease-in-out infinite alternate; }
-.b2 { bottom: -30vmax; right: -25vmax; background: radial-gradient(circle, var(--neon2) 0%, rgba(0,229,255,0) 65%); animation: lipu2 17s ease-in-out infinite alternate; }
-.b3 { top: 20%; left: 25%; opacity: .25; background: radial-gradient(circle, var(--neon3) 0%, rgba(255,230,0,0) 60%); animation: lipu3 21s ease-in-out infinite alternate; }
-@keyframes lipu1 { to { transform: translate(45vw, 35vh) scale(1.3); } }
-@keyframes lipu2 { to { transform: translate(-50vw, -30vh) scale(.75); } }
-@keyframes lipu3 { to { transform: translate(-30vw, 25vh) scale(1.5); } }
-
-/* CRT-juovat koko ruudun päällä */
-#scan {
+/* ================= TAUSTA: revontulet ja pistekuvio ================= */
+#aurora {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 8;
-  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0, rgba(0,0,0,.18) 2px, rgba(0,0,0,0) 2px, rgba(0,0,0,0) 5px);
+  overflow: hidden; pointer-events: none; z-index: 0;
+  opacity: .7;
+}
+.valo { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; will-change: transform; }
+.v1 { top: -30vmax; left: -15vmax; background: radial-gradient(circle, rgba(127,90,240,.55) 0%, rgba(127,90,240,0) 62%); animation: aur1 19s ease-in-out infinite alternate; }
+.v2 { top: -20vmax; right: -30vmax; background: radial-gradient(circle, rgba(44,177,255,.45) 0%, rgba(44,177,255,0) 62%); animation: aur2 23s ease-in-out infinite alternate; }
+.v3 { bottom: -40vmax; left: 10vmax; background: radial-gradient(circle, rgba(255,77,141,.35) 0%, rgba(255,77,141,0) 62%); animation: aur3 27s ease-in-out infinite alternate; }
+@keyframes aur1 { to { transform: translate(35vw, 20vh) scale(1.2); } }
+@keyframes aur2 { to { transform: translate(-40vw, 30vh) scale(.85); } }
+@keyframes aur3 { to { transform: translate(25vw, -25vh) scale(1.3); } }
+#dots {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,.09) 1px, rgba(255,255,255,0) 1.5px);
+  background-size: 26px 26px;
 }
 
-/* Välähdys */
-#flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; opacity: 0; }
-#flash.isku { animation: valahdys .45s ease-out; }
-@keyframes valahdys { 0% { opacity: .45; } 100% { opacity: 0; } }
+/* Valopurkaus painalluskohdasta. Piirretään pienenä ja skaalataan, jotta muisti riittää. */
+#bloom {
+  position: fixed; top: 0; left: 0;
+  width: 50vmax; height: 50vmax;
+  margin: -25vmax 0 0 -25vmax;
+  border-radius: 50%;
+  pointer-events: none; z-index: 6;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+#bloom.isku { animation: bloom .8s cubic-bezier(.1,.7,.3,1) forwards; }
+@keyframes bloom {
+  0% { opacity: .9; transform: scale(.15); }
+  100% { opacity: 0; transform: scale(3.2); }
+}
 
-/* Jättiteksti joka lentää ruudun yli */
+/* Kineettinen jättiteksti: nousee esiin maskin takaa */
 #splash {
   position: fixed; top: 50%; left: 0; width: 100%;
-  margin-top: -9vw;
+  height: 14vw; margin-top: -7vw;
+  overflow: hidden;
   pointer-events: none; z-index: 7;
   text-align: center;
-  font-size: 15vw; line-height: 18vw;
-  font-weight: 900; font-style: italic;
+}
+#splashIn {
+  display: inline-block;
+  padding: 0 4vw;
+  font-size: 12vw; line-height: 14vw;
+  font-weight: 800;
+  letter-spacing: -.045em;
   white-space: nowrap;
-  -webkit-text-stroke: 4px #000;
-  opacity: 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform: translateY(110%);
 }
-#splash.lenna { animation: lenna .9s cubic-bezier(.15,.8,.3,1) forwards; }
-@keyframes lenna {
-  0% { opacity: 1; transform: scale(.2) rotate(-14deg); }
-  35% { opacity: 1; transform: scale(1) rotate(-4deg); }
-  100% { opacity: 0; transform: scale(2.4) rotate(6deg); }
+#splash.nayta #splashIn { animation: nousu 1.05s cubic-bezier(.7,0,.2,1) forwards; }
+@keyframes nousu {
+  0% { transform: translateY(110%) skewY(6deg); }
+  28% { transform: translateY(0) skewY(0); }
+  72% { transform: translateY(0) skewY(0); }
+  100% { transform: translateY(-110%) skewY(-6deg); }
 }
-#splash.slam { animation: slam .8s cubic-bezier(.3,1.6,.5,1) forwards; }
-@keyframes slam {
-  0% { opacity: 0; transform: scale(4) rotate(8deg); }
-  25% { opacity: 1; transform: scale(1) rotate(-3deg); }
-  70% { opacity: 1; transform: scale(1.05) rotate(-3deg); }
-  100% { opacity: 0; transform: scale(.9) rotate(-3deg); }
-}
+#splash.nayta { animation: kasva 1.05s cubic-bezier(.2,.6,.3,1) forwards; }
+@keyframes kasva { from { transform: scale(.94); } to { transform: scale(1.06); } }
 
-/* Konfetti */
-.kipina {
-  position: fixed; top: 0; left: 0;
-  width: 14px; height: 14px;
-  margin: -7px 0 0 -7px;
-  pointer-events: none; z-index: 7;
-  transition: transform .8s cubic-bezier(.1,.8,.3,1), opacity .8s ease-in;
-}
-
-/* Koko yläpalkki tärähtää STOPista */
-.tarise { animation: tarise .4s ease-out; }
-@keyframes tarise {
-  0%, 100% { transform: none; }
-  15% { transform: translate(-10px, 4px) rotate(-1deg); }
-  30% { transform: translate(9px, -3px) rotate(1deg); }
-  45% { transform: translate(-7px, 2px); }
-  60% { transform: translate(5px, -1px); }
-  80% { transform: translate(-2px, 0); }
-}
-
-/* ---------- Yläpalkki ---------- */
+/* ================= YLÄPALKKI ================= */
 #top {
   position: fixed;
   top: calc(12px + env(safe-area-inset-top, 0px));
@@ -120,35 +120,47 @@ html, body {
 #stop {
   position: relative;
   flex: 0 0 auto;
-  width: 38%;
+  width: 34%;
   min-width: 220px;
   margin-right: var(--rako);
   padding: 0;
   border: 0;
   border-radius: var(--pyoristys);
   overflow: hidden;
-  background: var(--stop1);
-  box-shadow: inset 0 -10px 0 rgba(0,0,0,.45), 0 0 0 4px #fff, 0 0 30px rgba(255,31,61,.6);
+  background: linear-gradient(135deg, var(--stop1), var(--stop2));
+  box-shadow: 0 18px 50px -14px var(--stop1), inset 0 1px 0 rgba(255,255,255,.35);
   color: #fff;
-  transition: transform .06s;
+  font-family: inherit;
+  transition: transform .12s cubic-bezier(.3,1.5,.5,1);
 }
-/* marssivat varoitusraidat */
+#stop .sisalto {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px; font-weight: 800;
+  letter-spacing: .02em;
+}
+#stop .ikoni {
+  width: 30px; height: 30px;
+  margin-right: 16px;
+  border-radius: 7px;
+  background: #fff;
+}
+/* kiiltopyyhkäisy */
 #stop::before {
   content: '';
-  position: absolute; top: 0; bottom: 0; left: -68px;
-  width: calc(100% + 136px);
-  background: repeating-linear-gradient(-45deg, var(--stop1) 0, var(--stop1) 24px, var(--stop2) 24px, var(--stop2) 48px);
-  opacity: .55;
-  animation: marssi 1.2s linear infinite;
+  position: absolute; top: 0; bottom: 0; left: 0;
+  width: 45%;
+  background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.35), rgba(255,255,255,0));
+  transform: translateX(-120%);
+  animation: kiilto 4.5s ease-in-out infinite;
 }
-@keyframes marssi { to { transform: translateX(67.88px); } }
-#stop span {
-  position: relative;
-  font-size: 50px; font-weight: 900; font-style: italic;
-  letter-spacing: .06em;
-  text-shadow: 4px 4px 0 #000, -2px -2px 0 #000;
+@keyframes kiilto {
+  0%, 70% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
 }
-#stop:active, #stop.isku { transform: translateY(6px) scale(.96); }
+#stop:active, #stop.isku { transform: scale(.95); }
 
 #now {
   position: relative;
@@ -156,53 +168,86 @@ html, body {
   min-width: 0;
   padding: 14px 22px 0;
   border-radius: var(--pyoristys);
-  background: rgba(0,0,0,.45);
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.14);
+  background: var(--lasi);
+  box-shadow: inset 0 0 0 1px var(--lasi-reuna);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
   overflow: hidden;
 }
-#nowText {
+.otsake {
   display: block;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--himmea);
+}
+#nowName {
+  display: block;
+  margin: 2px 150px 0 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 36px; line-height: 48px;
-  font-weight: 900; font-style: italic;
-  color: rgba(255,255,255,.28);
-  transform-origin: 0 50%;
+  font-size: 28px; line-height: 36px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: rgba(244,245,251,.3);
 }
-#now.soi #nowText { animation: pomppu .45s cubic-bezier(.2,1.8,.4,1); text-shadow: 0 0 18px currentColor; }
+#now.soi #nowName {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: nimiSisaan .45s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes nimiSisaan { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
-/* LED-voimakkuusmittari */
-#vu {
+#scoreBox { position: absolute; top: 14px; right: 22px; text-align: right; }
+#score {
+  display: block;
+  font-size: 26px; line-height: 36px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--teksti);
+}
+#score.pop { animation: scorepop .35s cubic-bezier(.3,1.6,.5,1); }
+@keyframes scorepop { 0% { transform: translateY(-6px) scale(1.15); opacity: .4; } 100% { transform: none; opacity: 1; } }
+
+/* Taajuusanalysaattori */
+#spec {
   position: absolute;
-  left: 22px; right: 22px; bottom: 14px;
-  height: 18px;
-  border-radius: 4px;
-  overflow: hidden;
-  background:
-    repeating-linear-gradient(90deg, rgba(0,0,0,0) 0, rgba(0,0,0,0) 11px, #120a22 11px, #120a22 15px),
-    linear-gradient(90deg, #39ff14 0%, #39ff14 60%, #ffe600 78%, #ff1f3d 92%, #ff1f3d 100%);
+  left: 22px; right: 22px; bottom: 10px;
+  height: 26px;
+  display: flex;
+  align-items: flex-end;
 }
-#vuCover {
-  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-  background: repeating-linear-gradient(90deg, #2a2140 0, #2a2140 11px, #120a22 11px, #120a22 15px);
-  transform-origin: 100% 50%;
+#spec i {
+  flex: 1;
+  height: 100%;
+  margin: 0 1.5px;
+  border-radius: 2px;
+  background: linear-gradient(0deg, #7f5af0, #2cb1ff 60%, #00f5a0);
+  transform-origin: 50% 100%;
+  transform: scaleY(.06);
+  opacity: .85;
 }
 
-/* ---------- Ruudukko ---------- */
-#board {
+/* ================= RUUDUKKO ================= */
+#stage {
   position: absolute;
   top: calc(var(--ylapalkki) + 14px + env(safe-area-inset-top, 0px));
   bottom: 0; left: 0;
   right: calc(var(--palkki-leveys) + 16px);
+  z-index: 1;
+}
+#board {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
   padding: calc(var(--rako) + 4px) var(--rako);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--pad-leveys), 1fr));
   grid-auto-rows: var(--pad-korkeus);
-  grid-gap: calc(var(--rako) + 6px);
+  grid-gap: var(--rako);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  z-index: 1;
 }
 
 .pad {
@@ -210,178 +255,224 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 10px 22px;
+  padding: 12px 12px 20px;
   border-radius: var(--pyoristys);
   text-align: center;
   word-break: break-word;
-  line-height: 1.12;
+  line-height: 1.15;
   cursor: pointer;
 }
 
 .pad.taysi {
-  --h: 300;
-  --r: 0deg;
-  --muoto: 20px;
-  background: hsl(var(--h), 95%, 58%);
-  border-radius: var(--muoto);
-  color: #140a26;
-  font-size: 23px;
-  font-weight: 900;
-  font-style: italic;
-  box-shadow: inset 0 -10px 0 hsl(var(--h), 85%, 34%), 0 8px 0 rgba(0,0,0,.5), 0 0 0 3px #140a26;
-  transform: rotate(var(--r));
-  transition: transform .07s, box-shadow .07s, opacity .2s;
+  --c1: #7f5af0;
+  --c2: #2cb1ff;
+  background: linear-gradient(160deg, rgba(255,255,255,.085), rgba(255,255,255,.02));
+  box-shadow: inset 0 0 0 1px var(--lasi-reuna), 0 10px 30px -18px #000;
+  color: var(--teksti);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  transition: transform .18s cubic-bezier(.3,1.5,.5,1), box-shadow .25s, opacity .25s;
 }
-/* kiiltävä heijastus */
+/* värillinen hehkulinja alareunassa */
 .pad.taysi::before {
   content: '';
   position: absolute;
-  top: 6px; left: 8px; right: 30%;
-  height: 28%;
-  border-radius: 999px;
-  background: linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,0));
-  pointer-events: none;
+  left: 22px; right: 22px; bottom: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--c1), var(--c2));
+  box-shadow: 0 0 14px var(--c1);
+  z-index: 1;
 }
-/* iskuaalto */
+/* laajeneva rengas */
 .pad.taysi::after {
   content: '';
   position: absolute;
-  top: -5px; left: -5px; right: -5px; bottom: -5px;
-  border: 6px solid hsl(var(--h), 100%, 75%);
-  border-radius: inherit;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border: 2px solid var(--c2);
+  border-radius: calc(var(--pyoristys) + 2px);
   opacity: 0;
   pointer-events: none;
 }
+/* täyttökerros: liukuväri, aalto ja kiilto */
+.fill {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  opacity: 0;
+  transition: opacity .3s;
+}
+.fill::before {
+  content: '';
+  position: absolute; top: 0; bottom: 0; left: 0;
+  width: 60%;
+  background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.45), rgba(255,255,255,0));
+  transform: translateX(-120%);
+}
+.aalto {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.45);
+  transform: scale(0);
+  animation: aalto .65s cubic-bezier(.1,.6,.3,1) forwards;
+  pointer-events: none;
+}
+@keyframes aalto { to { transform: scale(1); opacity: 0; } }
+
+.nimi { position: relative; z-index: 2; display: block; will-change: transform; }
+
 .pad.soi {
-  background: hsl(var(--h), 100%, 72%);
-  transform: rotate(calc(var(--r) * -2)) translateY(7px) scale(.95);
-  box-shadow: inset 0 -3px 0 hsl(var(--h), 85%, 34%), 0 0 0 5px #fff, 0 0 40px hsl(var(--h), 100%, 60%);
+  transform: scale(.965);
+  box-shadow: 0 22px 60px -14px var(--c1), 0 0 0 2px rgba(255,255,255,.9);
   z-index: 2;
 }
-.pad.soi::after { animation: isku .6s ease-out; }
-@keyframes isku {
-  0% { opacity: 1; transform: scale(1) rotate(0); }
-  100% { opacity: 0; transform: scale(1.55) rotate(6deg); }
+.pad.soi::before { opacity: 0; }
+.pad.soi .fill { opacity: 1; transition: opacity .05s; }
+.pad.soi .fill::before { animation: pyyhkaisy .7s cubic-bezier(.4,0,.2,1); }
+@keyframes pyyhkaisy { from { transform: translateX(-120%); } to { transform: translateX(260%); } }
+.pad.soi .nimi { text-shadow: 0 2px 12px rgba(0,0,0,.35); animation: nosto .5s cubic-bezier(.2,1.6,.4,1); }
+@keyframes nosto { from { transform: scale(1.25); } to { transform: scale(1); } }
+.pad.soi::after, .pad.vilkku::after { animation: rengas .7s cubic-bezier(.1,.7,.3,1); }
+@keyframes rengas {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.3); }
 }
-.nimi { display: block; position: relative; will-change: transform; }
-.pad.soi .nimi { animation: pomppu .45s cubic-bezier(.2,1.8,.4,1); }
-@keyframes pomppu { 0% { transform: scale(1.6) rotate(-6deg); } 100% { transform: scale(1); } }
+.pad.vilkku .fill { opacity: .35; }
 
-/* muut painikkeet himmenevät kun jokin soi */
-body.soi .pad.taysi:not(.soi) { opacity: .55; }
+body.soi .pad.taysi:not(.soi) { opacity: .45; }
 
 .prog {
   position: absolute;
-  left: 14px; right: 14px; bottom: 18px;
-  height: 7px;
-  border-radius: 4px;
-  background: #140a26;
-  opacity: 0;
+  left: 0; bottom: 0;
+  width: 100%; height: 5px;
+  background: rgba(255,255,255,.9);
   transform-origin: 0 50%;
   transform: scaleX(0);
 }
-.pad.soi .prog { opacity: .75; animation-name: etene; animation-timing-function: linear; animation-fill-mode: forwards; }
+.pad.soi .prog { animation-name: etene; animation-timing-function: linear; animation-fill-mode: forwards; }
 @keyframes etene { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 .pad.lataa { opacity: .3; }
 
 .pad.tyhja {
-  background: rgba(0,0,0,.28);
-  border: 2px dashed rgba(255,255,255,.15);
-  color: rgba(255,255,255,.3);
-  font-size: 17px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+  background: rgba(255,255,255,.015);
+  color: rgba(244,245,251,.28);
+  font-size: 15px;
   font-weight: 600;
 }
 
-/* ---------- Muokkaustila ---------- */
+/* ================= MUOKKAUSTILA ================= */
 .tools { display: none; }
-body.editing .pad.taysi { transform: none; opacity: .9; }
 body.editing .tools {
   display: flex;
   position: absolute;
-  left: 6px; right: 6px; bottom: 10px;
+  left: 8px; right: 8px; bottom: 10px;
   justify-content: space-between;
+  z-index: 3;
 }
 .tool {
   width: 42px; height: 34px;
   border: 0;
-  border-radius: 9px;
-  background: rgba(20,10,38,.6);
+  border-radius: 12px;
+  background: rgba(255,255,255,.12);
   color: #fff;
-  font-size: 16px;
+  font-size: 15px;
 }
-.tool.poista { background: #b80028; }
+.tool.poista { background: rgba(255,59,92,.85); }
+body.editing .pad.taysi { box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
 
 #fileInput { display: none; }
 
-/* ---------- Vierityspalkki ja muokkausnappi ---------- */
+/* ================= VIERITYS JA MUOKKAUSNAPPI ================= */
 #bar {
   position: fixed;
   top: calc(var(--ylapalkki) + 30px + env(safe-area-inset-top, 0px));
   right: 8px;
-  bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
   width: var(--palkki-leveys);
-  border-radius: 16px;
-  background: rgba(0,0,0,.35);
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.1);
+  border-radius: 18px;
+  background: rgba(255,255,255,.035);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
   z-index: 2;
 }
 #bar.piilossa { display: none; }
 #thumb {
   position: absolute;
-  left: 6px; right: 6px; top: 0;
+  left: 7px; right: 7px; top: 0;
   min-height: 60px;
-  border-radius: 11px;
-  background: linear-gradient(var(--neon1), var(--neon3), var(--neon2));
-  box-shadow: 0 0 18px rgba(255,43,214,.6);
+  border-radius: 13px;
+  background: linear-gradient(180deg, #7f5af0, #2cb1ff);
+  box-shadow: 0 8px 26px -6px rgba(44,177,255,.7), inset 0 1px 0 rgba(255,255,255,.4);
 }
 #editBtn {
   position: fixed;
   right: 8px;
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   width: var(--palkki-leveys);
-  height: 46px;
+  height: 48px;
   border: 0;
-  border-radius: 14px;
-  background: rgba(0,0,0,.4);
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.14);
-  color: rgba(255,255,255,.5);
+  border-radius: 16px;
+  background: rgba(255,255,255,.06);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
+  color: var(--himmea);
+  font-family: inherit;
   font-size: 17px;
-  font-weight: 700;
   z-index: 2;
 }
-body.editing #editBtn { color: #140a26; background: var(--neon3); box-shadow: none; font-size: 14px; }
+body.editing #editBtn { background: #fff; color: var(--pohja); font-size: 13px; font-weight: 700; }
 
-/* ---------- Kevyt tila (katso KEVYT koodin alussa) ---------- */
-body.kevyt #bg, body.kevyt #scan, body.kevyt #splash { display: none; }
+/* Kevyt tila */
+body.kevyt #aurora, body.kevyt #splash, body.kevyt #bloom { display: none; }
+body.kevyt #now { -webkit-backdrop-filter: none; backdrop-filter: none; background: #12131d; }
 body.kevyt #stop::before { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .blob, #stop::before, #flash.isku, #splash, .pad.soi::after, .pad.soi .nimi, #now.soi #nowText, .tarise { animation: none; }
+  .valo, #stop::before, #bloom.isku, #splash.nayta, #splash.nayta #splashIn,
+  .pad.soi::after, .pad.vilkku::after, .pad.soi .nimi, .pad.soi .fill::before, .aalto, #score.pop { animation: none; }
 }
 </style>
 </head>
 <body>
-<div id="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div id="aurora"><div class="valo v1"></div><div class="valo v2"></div><div class="valo v3"></div></div>
+<div id="dots"></div>
 <div id="top">
-  <button id="stop" type="button"><span>STOP</span></button>
-  <div id="now"><span id="nowText">Hiljaista</span><div id="vu"><div id="vuCover"></div></div></div>
+  <button id="stop" type="button"><span class="sisalto"><span class="ikoni"></span>STOP</span></button>
+  <div id="now">
+    <span class="otsake">NYT SOI</span>
+    <span id="nowName">Hiljaista</span>
+    <div id="scoreBox"><span class="otsake">PISTEET</span><span id="score">000000</span></div>
+    <div id="spec"></div>
+  </div>
 </div>
-<div id="board"></div>
+<div id="stage"><div id="board"></div></div>
 <div id="bar"><div id="thumb"></div></div>
 <button id="editBtn" type="button">✎</button>
 <input id="fileInput" type="file" accept="audio/mpeg,.mp3,audio/*" multiple>
-<div id="flash"></div>
-<div id="splash"></div>
-<div id="scan"></div>
+<div id="bloom"></div>
+<div id="splash"><span id="splashIn"></span></div>
 
 <script>
 (function () {
   'use strict';
 
   var PAIKKOJA = 100;
-  // Jos iPad nykii: vaihda true, niin tausta, juovat, jättiteksti ja konfetti jäävät pois.
+  // Jos iPad nykii: vaihda true. Revontulet, lasisumennus, valopurkaus ja jättiteksti jäävät pois.
   var KEVYT = false;
+  // Houkuttelutila: kun mitään ei ole painettu näin moneen sekuntiin,
+  // painikkeet välähtelevät hiljaa. 0 = pois päältä.
+  var HOUKUTTELU_SEK = 20;
+  // Liukuväriparit painikkeille
+  var PARIT = [
+    ['#7f5af0', '#2cb1ff'], ['#ff4d8d', '#ff9a3c'], ['#00d98b', '#00c2f5'],
+    ['#f72585', '#7209b7'], ['#ffc53d', '#ff5e62'], ['#4cc9f0', '#4361ee'],
+    ['#a3e635', '#10b981'], ['#c084fc', '#f472b6']
+  ];
+  var PALKKEJA = 32;
+
   if (KEVYT) document.body.classList.add('kevyt');
 
   /* ---------- Ääni: yksi sample kerrallaan ---------- */
@@ -390,9 +481,11 @@ body.kevyt #stop::before { animation: none; }
   var master = ctx.createGain();
   var analyser = ctx.createAnalyser();
   analyser.fftSize = 512;
+  analyser.smoothingTimeConstant = 0.72;
   master.connect(analyser);
   analyser.connect(ctx.destination);
   var wave = new Uint8Array(analyser.fftSize);
+  var freq = new Uint8Array(analyser.frequencyBinCount);
 
   var buffers = {};
   var current = null;
@@ -429,7 +522,7 @@ body.kevyt #stop::before { animation: none; }
     showNow(null);
   }
 
-  function play(p) {
+  function play(p, x, y) {
     var b = buffers[p.id];
     if (!b) return;
     stopCurrent();
@@ -447,13 +540,20 @@ body.kevyt #stop::before { animation: none; }
         showNow(null);
       }
     };
-    lightUp(p, b.duration);
+    lightUp(p, b.duration, x, y);
+    addScore();
     startMeter();
   }
 
-  /* ---------- Äänen tahdissa sykkivät asiat ---------- */
-  var bg = document.getElementById('bg');
-  var vuCover = document.getElementById('vuCover');
+  /* ---------- Analysaattori ja äänen tahdissa hehkuvat asiat ---------- */
+  var aurora = document.getElementById('aurora');
+  var spec = document.getElementById('spec');
+  var bars = [];
+  for (var bi = 0; bi < PALKKEJA; bi++) {
+    var bar_i = document.createElement('i');
+    spec.appendChild(bar_i);
+    bars.push(bar_i);
+  }
   var level = 0, meterOn = false;
 
   function startMeter() {
@@ -462,31 +562,42 @@ body.kevyt #stop::before { animation: none; }
     requestAnimationFrame(tick);
   }
   function tick() {
-    var peak = 0;
+    var peak = 0, i;
     if (current) {
       analyser.getByteTimeDomainData(wave);
-      for (var i = 0; i < wave.length; i += 2) {
+      for (i = 0; i < wave.length; i += 2) {
         var v = Math.abs(wave[i] - 128);
         if (v > peak) peak = v;
       }
       peak = Math.min(1, peak / 110);
+      analyser.getByteFrequencyData(freq);
     }
-    level = Math.max(peak, level * 0.86);   // nopea nousu, hidas lasku
-    vuCover.style.transform = 'scaleX(' + (1 - level).toFixed(3) + ')';
-    if (!KEVYT) bg.style.transform = 'scale(' + (1 + level * 0.18).toFixed(3) + ')';
+    level = Math.max(peak, level * 0.86);
+    for (i = 0; i < PALKKEJA; i++) {
+      // logaritminen jako: bassoille enemmän palkkeja kuin diskantille
+      var bin = 1 + Math.floor(Math.pow(i / PALKKEJA, 1.9) * 150);
+      var val = current ? freq[bin] / 255 : 0;
+      bars[i].style.transform = 'scaleY(' + Math.max(0.06, val).toFixed(3) + ')';
+    }
+    if (!KEVYT) aurora.style.opacity = (0.7 + level * 0.3).toFixed(3);
     if (current && els[current.id]) {
       var n = els[current.id].querySelector('.nimi');
-      if (n && !n.style.animationName) n.style.transform = 'scale(' + (1 + level * 0.35).toFixed(3) + ')';
+      if (n && !n.style.animationName) n.style.transform = 'scale(' + (1 + level * 0.12).toFixed(3) + ')';
     }
     if (current || level > 0.01) requestAnimationFrame(tick);
-    else { meterOn = false; level = 0; vuCover.style.transform = 'scaleX(1)'; bg.style.transform = ''; }
+    else {
+      meterOn = false; level = 0;
+      aurora.style.opacity = '';
+      for (i = 0; i < PALKKEJA; i++) bars[i].style.transform = 'scaleY(.06)';
+    }
   }
 
   /* ---------- Visuaalit ---------- */
-  var flash = document.getElementById('flash');
+  var bloom = document.getElementById('bloom');
   var splash = document.getElementById('splash');
+  var splashIn = document.getElementById('splashIn');
   var now = document.getElementById('now');
-  var nowText = document.getElementById('nowText');
+  var nowName = document.getElementById('nowName');
   var top = document.getElementById('top');
 
   function restart(el, cls) {
@@ -500,58 +611,53 @@ body.kevyt #stop::before { animation: none; }
     for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
     return Math.abs(h);
   }
-  function hue(id) { return hash(id) % 360; }
-  function tilt(id) { return ((hash(id + 'r') % 9) - 4) * 0.7; }
-  var MUODOT = ['20px', '34px 10px 34px 10px', '10px 34px 10px 34px', '46px', '14px 14px 40px 40px', '40px 40px 14px 14px'];
-  function shape(id) { return MUODOT[hash(id + 'm') % MUODOT.length]; }
+  function colors(id) { return PARIT[hash(id) % PARIT.length]; }
+  function grad(c, deg) { return 'linear-gradient(' + deg + 'deg,' + c[0] + ',' + c[1] + ')'; }
 
-  function confetti(el, h) {
+  function burst(x, y, color) {
     if (KEVYT) return;
-    var r = el.getBoundingClientRect();
-    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    var parts = [];
-    for (var i = 0; i < 14; i++) {
-      var d = document.createElement('div');
-      d.className = 'kipina';
-      d.style.background = 'hsl(' + ((h + (i % 3) * 120 + Math.random() * 40) % 360) + ',100%,62%)';
-      d.style.borderRadius = i % 2 ? '50%' : '2px';
-      d.style.transform = 'translate(' + cx + 'px,' + cy + 'px) scale(.3)';
-      document.body.appendChild(d);
-      parts.push(d);
-    }
-    void document.body.offsetWidth;
-    parts.forEach(function (d, i) {
-      var a = (i / parts.length) * Math.PI * 2 + Math.random() * 0.5;
-      var dist = 90 + Math.random() * 130;
-      var x = cx + Math.cos(a) * dist, y = cy + Math.sin(a) * dist + 40;
-      d.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + Math.round(Math.random() * 720 - 360) + 'deg) scale(1)';
-      d.style.opacity = '0';
-    });
-    setTimeout(function () { parts.forEach(function (d) { d.parentNode.removeChild(d); }); }, 850);
+    bloom.style.left = x + 'px';
+    bloom.style.top = y + 'px';
+    bloom.style.background = 'radial-gradient(circle,' + color + 'bb 0%,' + color + '00 62%)';
+    restart(bloom, 'isku');
   }
 
-  function lightUp(p, dur) {
-    var h = hue(p.id);
+  function bigText(text, c) {
+    if (KEVYT) return;
+    splashIn.textContent = text;
+    splashIn.style.backgroundImage = grad(c, 90);
+    restart(splash, 'nayta');
+  }
+
+  function lightUp(p, dur, x, y) {
+    var c = colors(p.id);
     var el = els[p.id];
     if (el) {
+      var r = el.getBoundingClientRect();
+      if (x === undefined) { x = r.left + r.width / 2; y = r.top + r.height / 2; }
+      var fill = el.querySelector('.fill');
       var prog = el.querySelector('.prog');
       prog.style.webkitAnimationDuration = dur + 's';
       prog.style.animationDuration = dur + 's';
       var n = el.querySelector('.nimi');
       n.style.transform = '';
       restart(el, 'soi');
-      // pomppuanimaation ajan mittari ei ohjaa nimeä
-      n.style.animationName = 'pomppu';
-      setTimeout(function () { n.style.animationName = ''; }, 450);
-      confetti(el, h);
+      n.style.animationName = 'nosto';
+      setTimeout(function () { n.style.animationName = ''; }, 500);
+
+      // aalto kosketuskohdasta
+      var size = Math.max(r.width, r.height) * 2.2;
+      var a = document.createElement('span');
+      a.className = 'aalto';
+      a.style.width = a.style.height = size + 'px';
+      a.style.left = (x - r.left - size / 2) + 'px';
+      a.style.top = (y - r.top - size / 2) + 'px';
+      fill.appendChild(a);
+      setTimeout(function () { if (a.parentNode) a.parentNode.removeChild(a); }, 700);
     }
     document.body.classList.add('soi');
-    flash.style.background = 'hsl(' + h + ',100%,60%)';
-    restart(flash, 'isku');
-    splash.textContent = p.name;
-    splash.style.color = 'hsl(' + h + ',100%,65%)';
-    splash.classList.remove('slam');
-    restart(splash, 'lenna');
+    if (x !== undefined) burst(x, y, c[0]);
+    bigText(p.name, c);
     showNow(p);
   }
 
@@ -567,36 +673,64 @@ body.kevyt #stop::before { animation: none; }
 
   function showNow(p) {
     if (p) {
-      nowText.textContent = p.name;
-      nowText.style.color = 'hsl(' + hue(p.id) + ',100%,68%)';
+      nowName.textContent = p.name;
+      nowName.style.backgroundImage = grad(colors(p.id), 90);
       restart(now, 'soi');
     } else {
       now.classList.remove('soi');
-      nowText.textContent = 'Hiljaista';
-      nowText.style.color = '';
+      nowName.textContent = 'Hiljaista';
+      nowName.style.backgroundImage = '';
     }
   }
 
+  /* ---------- Pisteet ---------- */
+  var score = 0;
+  var scoreEl = document.getElementById('score');
+  function addScore() {
+    score += 100;
+    var s = String(score);
+    while (s.length < 6) s = '0' + s;
+    scoreEl.textContent = s;
+    restart(scoreEl, 'pop');
+  }
+
   /* ---------- STOP ---------- */
+  var REKT = ['GET REKT', 'REKT', 'GG EZ', 'NOPE', 'WASTED'];
   var stopBtn = document.getElementById('stop');
   var stopTouched = false;
-  function hitStop() {
+  function hitStop(x, y) {
     var wasPlaying = !!current;
     stopCurrent();
     restart(stopBtn, 'isku');
     setTimeout(function () { stopBtn.classList.remove('isku'); }, 150);
-    restart(top, 'tarise');
-    flash.style.background = '#ff1f3d';
-    restart(flash, 'isku');
-    if (wasPlaying) {
-      splash.textContent = 'STOP';
-      splash.style.color = '#ff1f3d';
-      splash.classList.remove('lenna');
-      restart(splash, 'slam');
+    if (x === undefined) {
+      var r = stopBtn.getBoundingClientRect();
+      x = r.left + r.width / 2; y = r.top + r.height / 2;
     }
+    burst(x, y, '#ff3b5c');
+    if (wasPlaying) bigText(REKT[Math.floor(Math.random() * REKT.length)], ['#ff3b5c', '#ff7a45']);
   }
-  stopBtn.addEventListener('touchstart', function (e) { stopTouched = true; e.preventDefault(); hitStop(); }, { passive: false });
-  stopBtn.addEventListener('click', function () { if (!stopTouched) hitStop(); });
+  stopBtn.addEventListener('touchstart', function (e) {
+    stopTouched = true; e.preventDefault();
+    hitStop(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+  stopBtn.addEventListener('click', function (e) { if (!stopTouched) hitStop(e.clientX, e.clientY); });
+
+  /* ---------- Houkuttelutila ---------- */
+  var lastTouch = Date.now();
+  function touched() { lastTouch = Date.now(); }
+  document.addEventListener('touchstart', touched, true);
+  document.addEventListener('mousedown', touched, true);
+  if (HOUKUTTELU_SEK > 0 && !KEVYT) {
+    setInterval(function () {
+      if (editing || current || Date.now() - lastTouch < HOUKUTTELU_SEK * 1000) return;
+      var ids = Object.keys(els);
+      if (!ids.length) return;
+      var el = els[ids[Math.floor(Math.random() * ids.length)]];
+      restart(el, 'vilkku');
+      setTimeout(function () { el.classList.remove('vilkku'); }, 700);
+    }, 900);
+  }
 
   /* ---------- Tallennus (IndexedDB) ---------- */
   var db;
@@ -653,24 +787,25 @@ body.kevyt #stop::before { animation: none; }
   }
 
   function bindPad(el, p) {
-    var usedTouch = false, waiting = false;
+    var usedTouch = false, waiting = false, tx, ty;
     el.addEventListener('touchstart', function (e) {
       usedTouch = true;
       if (editing) return;
       e.preventDefault();
-      if (ctx.state === 'running') play(p); else waiting = true;
+      tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+      if (ctx.state === 'running') play(p, tx, ty); else waiting = true;
     }, { passive: false });
     el.addEventListener('touchend', function (e) {
       if (editing) return;
       e.preventDefault();
       unlock();
-      if (waiting) { waiting = false; play(p); }
+      if (waiting) { waiting = false; play(p, tx, ty); }
     }, { passive: false });
-    el.addEventListener('click', function () {
+    el.addEventListener('click', function (e) {
       if (editing) { rename(p); return; }
       if (usedTouch) return;
       unlock();
-      play(p);
+      play(p, e.clientX, e.clientY);
     });
   }
 
@@ -681,20 +816,23 @@ body.kevyt #stop::before { animation: none; }
     slots.forEach(function (p, i) {
       var el;
       if (p) {
+        var c = colors(p.id);
         el = document.createElement('div');
         el.className = 'pad taysi' + (buffers[p.id] ? '' : ' lataa');
-        el.style.setProperty('--h', hue(p.id));
-        el.style.setProperty('--r', tilt(p.id) + 'deg');
-        el.style.setProperty('--muoto', shape(p.id));
+        el.style.setProperty('--c1', c[0]);
+        el.style.setProperty('--c2', c[1]);
+
+        var fill = document.createElement('div');
+        fill.className = 'fill';
+        var prog = document.createElement('div');
+        prog.className = 'prog';
+        fill.appendChild(prog);
+        el.appendChild(fill);
 
         var label = document.createElement('span');
         label.className = 'nimi';
         label.textContent = p.name;
         el.appendChild(label);
-
-        var prog = document.createElement('div');
-        prog.className = 'prog';
-        el.appendChild(prog);
 
         var tools = document.createElement('div');
         tools.className = 'tools';
