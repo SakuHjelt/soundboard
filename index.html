@@ -6,25 +6,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Soundboard">
-<title>Soundboard</title>
+<title>SOUNDBOARD 3000</title>
 <style>
-/* ===== Värit ja mitat: muokkaa näitä vapaasti ===== */
 :root {
-  --pohja: #07080f;
-  --lasi: rgba(255,255,255,.06);
-  --lasi-reuna: rgba(255,255,255,.11);
-  --teksti: #f4f5fb;
-  --himmea: rgba(244,245,251,.45);
-  --stop1: #ff3b5c;
-  --stop2: #ff7a45;
-  --rako: 16px;
+  --rako: 18px;
   --pad-leveys: 170px;
   --pad-korkeus: 130px;
-  --pyoristys: 22px;
   --palkki-leveys: 60px;
-  --ylapalkki: 108px;
+  --ylapalkki: 104px;
+  --meme: "Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive;
 }
-
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -33,215 +24,343 @@
   -webkit-touch-callout: none;
 }
 html, body {
-  margin: 0;
-  height: 100%;
+  margin: 0; height: 100%; overflow: hidden;
+  color: #fff;
+  font-family: var(--meme);
+}
+body { animation: taustavari 2.4s steps(1) infinite; }
+@keyframes taustavari {
+  0% { background: #1a0033; } 17% { background: #002b36; } 33% { background: #330019; }
+  50% { background: #001a33; } 67% { background: #1f3300; } 83% { background: #33001a; }
+}
+
+/* ============ TAUSTAKAAOS ============ */
+#check {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0; opacity: .07;
+  background-image:
+    linear-gradient(45deg, #fff 25%, rgba(255,255,255,0) 25%, rgba(255,255,255,0) 75%, #fff 75%),
+    linear-gradient(45deg, #fff 25%, rgba(255,255,255,0) 25%, rgba(255,255,255,0) 75%, #fff 75%);
+  background-size: 80px 80px;
+  background-position: 0 0, 40px 40px;
+}
+#bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0; }
+.blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: .5; will-change: transform; }
+.b1 { top: -25vmax; left: -25vmax; background: radial-gradient(circle, #ff00e6 0%, rgba(255,0,230,0) 65%); animation: lipu1 7s ease-in-out infinite alternate; }
+.b2 { bottom: -30vmax; right: -25vmax; background: radial-gradient(circle, #00ffd5 0%, rgba(0,255,213,0) 65%); animation: lipu2 9s ease-in-out infinite alternate; }
+.b3 { top: 20%; left: 25%; background: radial-gradient(circle, #fff200 0%, rgba(255,242,0,0) 60%); opacity: .3; animation: lipu3 11s ease-in-out infinite alternate; }
+@keyframes lipu1 { to { transform: translate(50vw, 40vh) scale(1.4); } }
+@keyframes lipu2 { to { transform: translate(-55vw, -35vh) scale(.7); } }
+@keyframes lipu3 { to { transform: translate(-35vw, 30vh) scale(1.6); } }
+
+#raysWrap {
+  position: fixed; top: 50%; left: 50%;
+  width: 40vmax; height: 40vmax; margin: -20vmax 0 0 -20vmax;
+  pointer-events: none; z-index: 0; opacity: .15;
+}
+#rays {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, #ff0000 0deg, #ff0000 10deg, #ffea00 10deg, #ffea00 20deg, #00ff5e 20deg, #00ff5e 30deg, #00c8ff 30deg, #00c8ff 40deg, #b400ff 40deg, #b400ff 50deg);
+  animation: pyori 9s linear infinite;
+  will-change: transform;
+}
+@keyframes pyori { from { transform: scale(4) rotate(0); } to { transform: scale(4) rotate(-360deg); } }
+
+/* DVD-logo joka pomppii kulmasta kulmaan */
+#dvd {
+  position: fixed; left: 0; top: 0;
+  pointer-events: none; z-index: 4;
+  font-size: 34px; font-weight: bold; font-style: italic;
+  -webkit-text-stroke: 1px #000;
+  white-space: nowrap;
+  animation: dvdx 7.3s linear infinite alternate, dvdy 5.1s linear infinite alternate, sateenkaari 2.55s steps(1) infinite;
+}
+@keyframes dvdx { from { left: 0; } to { left: calc(100vw - 290px); } }
+@keyframes dvdy { from { top: 0; } to { top: calc(100vh - 44px); } }
+
+/* Putoavat emojit */
+.sade {
+  position: fixed; top: 0;
+  pointer-events: none; z-index: 4;
+  font-size: 50px;
+  will-change: transform;
+}
+@keyframes sada {
+  from { transform: translateY(-15vh) rotate(0); }
+  to { transform: translateY(115vh) rotate(720deg); }
+}
+
+/* Uutisnauha */
+#ticker {
+  position: fixed; left: 0; bottom: 0;
+  right: calc(var(--palkki-leveys) + 16px);
+  height: 34px;
   overflow: hidden;
-  background: var(--pohja);
-  color: var(--teksti);
-  font-family: -apple-system, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  pointer-events: none; z-index: 4;
+  background: #fff200;
+  color: #000;
+  font-size: 20px; line-height: 34px; font-weight: bold;
+  border-top: 3px solid #000;
 }
+#ticker span { display: inline-block; white-space: nowrap; padding-left: 100%; animation: tickeri 38s linear infinite; }
+@keyframes tickeri { to { transform: translateX(-100%); } }
 
-/* ================= TAUSTA: revontulet ja pistekuvio ================= */
-#aurora {
+#scan {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  overflow: hidden; pointer-events: none; z-index: 0;
-  opacity: .7;
+  pointer-events: none; z-index: 12;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0, rgba(0,0,0,.18) 2px, rgba(0,0,0,0) 2px, rgba(0,0,0,0) 5px);
 }
-.valo { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; will-change: transform; }
-.v1 { top: -30vmax; left: -15vmax; background: radial-gradient(circle, rgba(127,90,240,.55) 0%, rgba(127,90,240,0) 62%); animation: aur1 19s ease-in-out infinite alternate; }
-.v2 { top: -20vmax; right: -30vmax; background: radial-gradient(circle, rgba(44,177,255,.45) 0%, rgba(44,177,255,0) 62%); animation: aur2 23s ease-in-out infinite alternate; }
-.v3 { bottom: -40vmax; left: 10vmax; background: radial-gradient(circle, rgba(255,77,141,.35) 0%, rgba(255,77,141,0) 62%); animation: aur3 27s ease-in-out infinite alternate; }
-@keyframes aur1 { to { transform: translate(35vw, 20vh) scale(1.2); } }
-@keyframes aur2 { to { transform: translate(-40vw, 30vh) scale(.85); } }
-@keyframes aur3 { to { transform: translate(25vw, -25vh) scale(1.3); } }
-#dots {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 0;
-  background-image: radial-gradient(rgba(255,255,255,.09) 1px, rgba(255,255,255,0) 1.5px);
-  background-size: 26px 26px;
+#vhs {
+  position: fixed; left: 0; top: 0; width: 100%; height: 110px;
+  pointer-events: none; z-index: 12;
+  background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,.12) 40%, rgba(255,0,200,.15) 55%, rgba(255,255,255,0));
+  animation: vhs 4s linear infinite;
+  will-change: transform;
+}
+@keyframes vhs { 0% { transform: translateY(-120px); } 70% { transform: translateY(110vh); } 100% { transform: translateY(110vh); } }
+
+@keyframes sateenkaari {
+  0% { color: #ff2bd6; } 16% { color: #ffe600; } 33% { color: #39ff14; }
+  50% { color: #00e5ff; } 66% { color: #ff1f3d; } 83% { color: #fff; }
 }
 
-/* Valopurkaus painalluskohdasta. Piirretään pienenä ja skaalataan, jotta muisti riittää. */
-#bloom {
-  position: fixed; top: 0; left: 0;
-  width: 50vmax; height: 50vmax;
-  margin: -25vmax 0 0 -25vmax;
-  border-radius: 50%;
-  pointer-events: none; z-index: 6;
-  opacity: 0;
-  will-change: transform, opacity;
-}
-#bloom.isku { animation: bloom .8s cubic-bezier(.1,.7,.3,1) forwards; }
-@keyframes bloom {
-  0% { opacity: .9; transform: scale(.15); }
-  100% { opacity: 0; transform: scale(3.2); }
-}
+/* ============ PAINALLUSEFEKTIT ============ */
+#flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; opacity: 0; }
+#flash.isku { animation: strobo .5s steps(1); }
+@keyframes strobo { 0% { opacity: .6; } 20% { opacity: 0; } 40% { opacity: .45; } 60% { opacity: 0; } 80% { opacity: .25; } 100% { opacity: 0; } }
 
-/* Kineettinen jättiteksti: nousee esiin maskin takaa */
 #splash {
   position: fixed; top: 50%; left: 0; width: 100%;
-  height: 14vw; margin-top: -7vw;
-  overflow: hidden;
-  pointer-events: none; z-index: 7;
+  margin-top: -9vw;
+  pointer-events: none; z-index: 8;
   text-align: center;
-}
-#splashIn {
-  display: inline-block;
-  padding: 0 4vw;
-  font-size: 12vw; line-height: 14vw;
-  font-weight: 800;
-  letter-spacing: -.045em;
+  font-size: 15vw; line-height: 18vw;
+  font-weight: 900; font-style: italic;
   white-space: nowrap;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  transform: translateY(110%);
+  -webkit-text-stroke: 4px #000;
+  text-shadow: -8px 0 #00e5ff, 8px 0 #ff2bd6, 0 10px 0 #000;
+  opacity: 0;
 }
-#splash.nayta #splashIn { animation: nousu 1.05s cubic-bezier(.7,0,.2,1) forwards; }
-@keyframes nousu {
-  0% { transform: translateY(110%) skewY(6deg); }
-  28% { transform: translateY(0) skewY(0); }
-  72% { transform: translateY(0) skewY(0); }
-  100% { transform: translateY(-110%) skewY(-6deg); }
+#splash.lenna { animation: lenna .95s cubic-bezier(.15,.8,.3,1) forwards; }
+@keyframes lenna {
+  0% { opacity: 1; transform: scale(.2) rotate(-16deg); }
+  12% { opacity: 1; transform: scale(1.1) rotate(-6deg) translateX(-14px); }
+  16% { transform: scale(1.05) rotate(-4deg) translateX(18px) skewX(-12deg); }
+  40% { opacity: 1; transform: scale(1.05) rotate(-3deg); }
+  100% { opacity: 0; transform: scale(2.6) rotate(8deg); }
 }
-#splash.nayta { animation: kasva 1.05s cubic-bezier(.2,.6,.3,1) forwards; }
-@keyframes kasva { from { transform: scale(.94); } to { transform: scale(1.06); } }
+#splash.spin { animation: spin .95s cubic-bezier(.2,.7,.3,1) forwards; }
+@keyframes spin {
+  0% { opacity: 1; transform: scale(.2) rotate(0); }
+  50% { opacity: 1; transform: scale(1.1) rotate(1080deg); }
+  100% { opacity: 0; transform: scale(2.3) rotate(1120deg); }
+}
+#splash.slam { animation: slam .85s cubic-bezier(.3,1.6,.5,1) forwards; }
+@keyframes slam {
+  0% { opacity: 0; transform: scale(5) rotate(10deg); }
+  22% { opacity: 1; transform: scale(1) rotate(-3deg); }
+  28% { transform: scale(1) rotate(-3deg) translateX(20px) skewX(15deg); }
+  34% { transform: scale(1) rotate(-3deg) translateX(-14px); }
+  75% { opacity: 1; transform: scale(1.04) rotate(-3deg); }
+  100% { opacity: 0; transform: scale(.85) rotate(-3deg); }
+}
+#splash.venyy { animation: venyy .9s ease-out forwards; }
+@keyframes venyy {
+  0% { opacity: 1; transform: scale(3, .1); }
+  30% { opacity: 1; transform: scale(.6, 1.6); }
+  50% { transform: scale(1.3, .8); }
+  75% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1) translateY(-40vh) rotate(-30deg); }
+}
 
-/* ================= YLÄPALKKI ================= */
+.kipina {
+  position: fixed; top: 0; left: 0;
+  width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  pointer-events: none; z-index: 8;
+  font-size: 32px; line-height: 14px; text-align: center;
+  transition: transform .9s cubic-bezier(.1,.8,.3,1), opacity .9s ease-in;
+}
+.jalki {
+  position: fixed; top: 0; left: 0;
+  margin: -18px 0 0 -18px;
+  pointer-events: none; z-index: 9;
+  font-size: 36px;
+  animation: jalki .8s ease-out forwards;
+}
+@keyframes jalki { from { opacity: 1; transform: scale(1.4) rotate(0); } to { opacity: 0; transform: translateY(-80px) scale(.4) rotate(200deg); } }
+
+.hit {
+  position: fixed; width: 60px; height: 60px; margin: -30px 0 0 -30px;
+  pointer-events: none; z-index: 11;
+  animation: hitpop .35s ease-out forwards;
+}
+.hit::before, .hit::after {
+  content: ''; position: absolute; left: 0; top: 27px;
+  width: 60px; height: 6px; background: #fff; box-shadow: 0 0 0 2px #000;
+}
+.hit::before { transform: rotate(45deg); }
+.hit::after { transform: rotate(-45deg); }
+@keyframes hitpop { 0% { transform: scale(1.7); opacity: 1; } 50% { transform: scale(1); opacity: 1; } 100% { transform: scale(.9); opacity: 0; } }
+
+.meme { position: fixed; pointer-events: none; z-index: 9; white-space: nowrap; }
+.meme span {
+  display: inline-block; font-weight: bold;
+  -webkit-text-stroke: 2px #000; text-shadow: 4px 4px 0 #000;
+  animation: memepop 1.1s ease-out forwards, sateenkaari .3s steps(1) infinite;
+}
+@keyframes memepop {
+  0% { transform: scale(0); opacity: 1; } 15% { transform: scale(1.4); } 25% { transform: scale(1); }
+  75% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; }
+}
+
+#combo {
+  position: fixed; top: calc(var(--ylapalkki) + 50px); left: 0; width: 100%;
+  text-align: center; pointer-events: none; z-index: 9;
+  font-size: 9vmin; font-weight: bold; white-space: nowrap;
+  -webkit-text-stroke: 3px #000; text-shadow: 6px 6px 0 #000;
+  opacity: 0;
+}
+#combo.slam { animation: comboslam 1.1s cubic-bezier(.3,1.6,.5,1) forwards, sateenkaari .2s steps(1) infinite; }
+@keyframes comboslam {
+  0% { opacity: 0; transform: scale(3.5) rotate(12deg); } 20% { opacity: 1; transform: scale(1) rotate(-5deg); }
+  30% { transform: scale(1.12) rotate(4deg); } 40% { transform: scale(1) rotate(-3deg); }
+  80% { opacity: 1; transform: scale(1.04) rotate(-3deg); } 100% { opacity: 0; transform: scale(.8) rotate(-3deg); }
+}
+
+#illu {
+  position: fixed; top: 50%; left: 50%; width: 0; height: 0;
+  margin: -30vmin 0 0 -26vmin;
+  border-left: 26vmin solid transparent; border-right: 26vmin solid transparent;
+  border-bottom: 45vmin solid rgba(57,255,20,.4);
+  transform-origin: 50% 66%;
+  pointer-events: none; z-index: 5; opacity: 0;
+}
+#illu span { position: absolute; top: 19vmin; left: -9vmin; width: 18vmin; text-align: center; font-size: 15vmin; line-height: 15vmin; }
+#illu.nayta { animation: illu 1.4s ease-in-out forwards; }
+@keyframes illu {
+  0% { opacity: 0; transform: scale(.2) rotate(0); } 30% { opacity: 1; transform: scale(1.25) rotate(200deg); }
+  70% { opacity: 1; transform: scale(1) rotate(360deg); } 100% { opacity: 0; transform: scale(2.2) rotate(420deg); }
+}
+
+.lasit {
+  position: fixed; top: 0; left: 50%; width: 60vmin; margin-left: -30vmin;
+  text-align: center; pointer-events: none; z-index: 9;
+  animation: putoa 1.8s ease-in forwards;
+}
+.lasit b { display: block; font-size: 22vmin; line-height: 24vmin; }
+.lasit em { display: block; font-style: normal; font-weight: bold; font-size: 6vmin; -webkit-text-stroke: 2px #000; text-shadow: 4px 4px 0 #000; }
+@keyframes putoa {
+  0% { transform: translateY(-40vmin); opacity: 1; } 40% { transform: translateY(32vh); } 50% { transform: translateY(28vh); }
+  60% { transform: translateY(32vh); } 85% { transform: translateY(32vh); opacity: 1; } 100% { transform: translateY(32vh); opacity: 0; }
+}
+
+/* Win95-virheikkunat */
+.ikkuna {
+  position: fixed; width: 320px;
+  pointer-events: none; z-index: 10;
+  background: #c0c0c0; color: #000;
+  font-family: Arial, Helvetica, sans-serif; font-size: 15px;
+  border: 2px solid; border-color: #fff #404040 #404040 #fff;
+  box-shadow: 4px 4px 0 rgba(0,0,0,.5);
+  animation: ikkuna 1.6s ease-out forwards;
+}
+.ikkuna .otsikko {
+  padding: 4px 8px;
+  background: linear-gradient(90deg, #000080, #1084d0);
+  color: #fff; font-weight: bold;
+}
+.ikkuna .otsikko b { float: right; padding: 0 5px; background: #c0c0c0; color: #000; border: 1px solid; border-color: #fff #404040 #404040 #fff; }
+.ikkuna .runko { padding: 14px 12px 10px; }
+.ikkuna .ok { display: block; width: 80px; margin: 12px auto 0; padding: 3px; text-align: center; border: 2px solid; border-color: #fff #404040 #404040 #fff; }
+@keyframes ikkuna {
+  0% { transform: scale(0); } 10% { transform: scale(1.1); } 15% { transform: scale(1) translateX(-6px); }
+  20% { transform: translateX(6px); } 25% { transform: none; } 90% { opacity: 1; } 100% { opacity: 0; }
+}
+
+/* Tärinät ja pyörähdykset */
+.nytky { animation: nytky .22s ease-out; }
+@keyframes nytky { 0%, 100% { transform: none; } 25% { transform: translate(-7px, 4px); } 50% { transform: translate(6px, -3px); } 75% { transform: translate(-3px, 1px); } }
+.tarise { animation: tarise .45s ease-out; }
+@keyframes tarise {
+  0%, 100% { transform: none; } 12% { transform: translate(-16px, 7px) rotate(-1.5deg); } 26% { transform: translate(14px, -6px) rotate(1.2deg); }
+  40% { transform: translate(-10px, 3px) rotate(-.6deg); } 56% { transform: translate(6px, -2px); } 75% { transform: translate(-3px, 1px); }
+}
+.zoom { animation: zoompunch .5s ease-out; }
+@keyframes zoompunch {
+  0% { transform: scale(1.15) rotate(-2.5deg); } 20% { transform: scale(1.1) rotate(2deg) translate(10px, -6px); }
+  40% { transform: scale(1.05) rotate(-1deg) translate(-8px, 5px); } 100% { transform: none; }
+}
+.kieppi { animation: kieppi .7s cubic-bezier(.5,0,.3,1); }
+@keyframes kieppi { from { transform: rotate(0) scale(1); } 50% { transform: rotate(180deg) scale(.7); } to { transform: rotate(360deg) scale(1); } }
+
+/* ============ YLÄPALKKI ============ */
 #top {
-  position: fixed;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  left: var(--rako); right: 8px;
-  height: var(--ylapalkki);
-  display: flex;
-  z-index: 3;
+  position: fixed; top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 16px; right: 8px; height: var(--ylapalkki);
+  display: flex; z-index: 3;
 }
 #stop {
-  position: relative;
-  flex: 0 0 auto;
-  width: 34%;
-  min-width: 220px;
-  margin-right: var(--rako);
-  padding: 0;
-  border: 0;
-  border-radius: var(--pyoristys);
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--stop1), var(--stop2));
-  box-shadow: 0 18px 50px -14px var(--stop1), inset 0 1px 0 rgba(255,255,255,.35);
+  position: relative; flex: 0 0 auto; width: 38%; min-width: 220px; margin-right: 16px;
+  padding: 0; border: 0; border-radius: 20px; overflow: hidden;
+  background: #ff1f3d;
+  box-shadow: inset 0 -10px 0 rgba(0,0,0,.45), 0 0 0 4px #fff, 0 0 34px rgba(255,31,61,.8);
   color: #fff;
-  font-family: inherit;
-  transition: transform .12s cubic-bezier(.3,1.5,.5,1);
+  animation: stopheilu .9s ease-in-out infinite alternate;
 }
-#stop .sisalto {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px; font-weight: 800;
-  letter-spacing: .02em;
-}
-#stop .ikoni {
-  width: 30px; height: 30px;
-  margin-right: 16px;
-  border-radius: 7px;
-  background: #fff;
-}
-/* kiiltopyyhkäisy */
+@keyframes stopheilu { from { transform: rotate(-2deg); } to { transform: rotate(2deg) scale(1.03); } }
 #stop::before {
-  content: '';
-  position: absolute; top: 0; bottom: 0; left: 0;
-  width: 45%;
-  background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.35), rgba(255,255,255,0));
-  transform: translateX(-120%);
-  animation: kiilto 4.5s ease-in-out infinite;
+  content: ''; position: absolute; top: 0; bottom: 0; left: -68px; width: calc(100% + 136px);
+  background: repeating-linear-gradient(-45deg, #ff1f3d 0, #ff1f3d 24px, #ffe600 24px, #ffe600 48px);
+  opacity: .6; animation: marssi .5s linear infinite;
 }
-@keyframes kiilto {
-  0%, 70% { transform: translateX(-120%); }
-  100% { transform: translateX(340%); }
+@keyframes marssi { to { transform: translateX(67.88px); } }
+#stop span {
+  position: relative; display: inline-block;
+  font-size: 46px; font-weight: 900; font-style: italic;
+  -webkit-text-stroke: 2px #000; text-shadow: 4px 4px 0 #000;
+  animation: sateenkaari .4s steps(1) infinite;
 }
-#stop:active, #stop.isku { transform: scale(.95); }
+#stop.isku { animation: none; transform: translateY(6px) scale(.94); }
 
 #now {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  padding: 14px 22px 0;
-  border-radius: var(--pyoristys);
-  background: var(--lasi);
-  box-shadow: inset 0 0 0 1px var(--lasi-reuna);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  backdrop-filter: blur(22px) saturate(160%);
+  position: relative; flex: 1; min-width: 0;
+  padding: 12px 20px 0;
+  border-radius: 20px;
+  background: rgba(0,0,0,.55);
+  box-shadow: inset 0 0 0 3px #fff200;
   overflow: hidden;
 }
-.otsake {
-  display: block;
-  font-size: 11px; font-weight: 700;
-  letter-spacing: .16em;
-  color: var(--himmea);
-}
-#nowName {
-  display: block;
-  margin: 2px 150px 0 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 28px; line-height: 36px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  color: rgba(244,245,251,.3);
-}
-#now.soi #nowName {
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: nimiSisaan .45s cubic-bezier(.2,.9,.3,1);
-}
-@keyframes nimiSisaan { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-
-#scoreBox { position: absolute; top: 14px; right: 22px; text-align: right; }
+#nowText { display: block; margin-right: 180px; height: 54px; overflow: hidden; white-space: nowrap; font-size: 34px; line-height: 54px; font-weight: bold; color: rgba(255,255,255,.35); }
+#nowText .k { display: inline-block; animation: aalto .35s ease-in-out infinite alternate; }
+@keyframes aalto { from { transform: translateY(6px) rotate(-12deg); } to { transform: translateY(-8px) rotate(12deg); } }
 #score {
-  display: block;
-  font-size: 26px; line-height: 36px;
-  font-weight: 800;
-  letter-spacing: -.01em;
-  font-variant-numeric: tabular-nums;
-  color: var(--teksti);
+  position: absolute; top: 10px; right: 18px;
+  font-size: 22px; font-weight: bold; white-space: nowrap;
+  color: #ffe600; -webkit-text-stroke: 1px #000; text-shadow: 2px 2px 0 #000;
 }
-#score.pop { animation: scorepop .35s cubic-bezier(.3,1.6,.5,1); }
-@keyframes scorepop { 0% { transform: translateY(-6px) scale(1.15); opacity: .4; } 100% { transform: none; opacity: 1; } }
+#score.pop { animation: scorepop .35s ease-out, sateenkaari .2s steps(1) 5; }
+@keyframes scorepop { 0% { transform: scale(2) rotate(-15deg); } 100% { transform: none; } }
+#vu {
+  position: absolute; left: 20px; right: 20px; bottom: 12px; height: 18px; border-radius: 4px; overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,0) 0, rgba(0,0,0,0) 11px, #000 11px, #000 15px),
+    linear-gradient(90deg, #ff0000, #ffea00, #00ff5e, #00c8ff, #b400ff, #ff00e6);
+}
+#vuCover { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: #1a1a1a; transform-origin: 100% 50%; }
 
-/* Taajuusanalysaattori */
-#spec {
-  position: absolute;
-  left: 22px; right: 22px; bottom: 10px;
-  height: 26px;
-  display: flex;
-  align-items: flex-end;
-}
-#spec i {
-  flex: 1;
-  height: 100%;
-  margin: 0 1.5px;
-  border-radius: 2px;
-  background: linear-gradient(0deg, #7f5af0, #2cb1ff 60%, #00f5a0);
-  transform-origin: 50% 100%;
-  transform: scaleY(.06);
-  opacity: .85;
-}
-
-/* ================= RUUDUKKO ================= */
+/* ============ RUUDUKKO ============ */
 #stage {
   position: absolute;
   top: calc(var(--ylapalkki) + 14px + env(safe-area-inset-top, 0px));
-  bottom: 0; left: 0;
+  bottom: 34px; left: 0;
   right: calc(var(--palkki-leveys) + 16px);
   z-index: 1;
 }
+#tilt { position: absolute; top: 0; right: 0; bottom: 0; left: 0; animation: keinu 6s ease-in-out infinite alternate; }
+@keyframes keinu { from { transform: rotate(-1.2deg); } to { transform: rotate(1.2deg); } }
 #board {
-  position: absolute;
-  top: 0; right: 0; bottom: 0; left: 0;
-  padding: calc(var(--rako) + 4px) var(--rako);
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+  padding: 24px var(--rako);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--pad-leveys), 1fr));
   grid-auto-rows: var(--pad-korkeus);
@@ -251,229 +370,163 @@ html, body {
 }
 
 .pad {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 12px 20px;
-  border-radius: var(--pyoristys);
-  text-align: center;
-  word-break: break-word;
-  line-height: 1.15;
-  cursor: pointer;
+  position: relative; display: flex; align-items: center; justify-content: center;
+  padding: 10px 10px 22px; border-radius: 20px;
+  text-align: center; word-break: break-word; line-height: 1.12; cursor: pointer;
 }
-
 .pad.taysi {
-  --c1: #7f5af0;
-  --c2: #2cb1ff;
-  background: linear-gradient(160deg, rgba(255,255,255,.085), rgba(255,255,255,.02));
-  box-shadow: inset 0 0 0 1px var(--lasi-reuna), 0 10px 30px -18px #000;
-  color: var(--teksti);
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -.01em;
-  transition: transform .18s cubic-bezier(.3,1.5,.5,1), box-shadow .25s, opacity .25s;
+  --h: 300;
+  --muoto: 20px;
+  background-color: hsl(var(--h), 95%, 58%);
+  border-radius: var(--muoto);
+  font-size: 22px; font-weight: bold;
+  box-shadow: inset 0 -10px 0 hsl(var(--h), 85%, 34%), 0 8px 0 rgba(0,0,0,.55), 0 0 0 3px #000;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }
-/* värillinen hehkulinja alareunassa */
-.pad.taysi::before {
-  content: '';
-  position: absolute;
-  left: 22px; right: 22px; bottom: 0;
-  height: 3px;
-  border-radius: 3px;
-  background: linear-gradient(90deg, var(--c1), var(--c2));
-  box-shadow: 0 0 14px var(--c1);
-  z-index: 1;
-}
-/* laajeneva rengas */
+.pad.w1 { animation-name: heilu1; animation-duration: 1.1s; }
+.pad.w2 { animation-name: heilu2; animation-duration: 1.7s; }
+.pad.w3 { animation-name: heilu3; animation-duration: .8s; }
+.pad.w4 { animation-name: heilu4; animation-duration: 2.3s; }
+.pad.w5 { animation-name: heilu5; animation-duration: 1.35s; }
+@keyframes heilu1 { from { transform: rotate(-4deg); } to { transform: rotate(4deg) translateY(-6px); } }
+@keyframes heilu2 { from { transform: rotate(3deg); } to { transform: rotate(-5deg) scale(1.05); } }
+@keyframes heilu3 { from { transform: translateX(-4px) rotate(-2deg); } to { transform: translateX(4px) rotate(6deg); } }
+@keyframes heilu4 { from { transform: rotate(-8deg); } to { transform: rotate(2deg) translateY(5px); } }
+@keyframes heilu5 { from { transform: scale(.94) rotate(1deg); } to { transform: scale(1.04) rotate(-3deg); } }
+
+.pad.k1 { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0, rgba(255,255,255,.25) 10px, rgba(255,255,255,0) 10px, rgba(255,255,255,0) 22px); }
+.pad.k2 { background-image: radial-gradient(rgba(255,255,255,.35) 22%, rgba(255,255,255,0) 26%); background-size: 18px 18px; }
+.pad.k3 { background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.15) 0, rgba(0,0,0,.15) 8px, rgba(0,0,0,0) 8px, rgba(0,0,0,0) 16px); }
+.pad.k4 { background-image: linear-gradient(45deg, rgba(0,0,0,.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%, rgba(0,0,0,.2) 75%), linear-gradient(45deg, rgba(0,0,0,.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%, rgba(0,0,0,.2) 75%); background-size: 24px 24px; background-position: 0 0, 12px 12px; }
+.pad.k5 { background-image: repeating-radial-gradient(circle at 80% 20%, rgba(255,255,255,.22) 0, rgba(255,255,255,.22) 6px, rgba(255,255,255,0) 6px, rgba(255,255,255,0) 14px); }
+
 .pad.taysi::after {
-  content: '';
-  position: absolute;
-  top: -2px; left: -2px; right: -2px; bottom: -2px;
-  border: 2px solid var(--c2);
-  border-radius: calc(var(--pyoristys) + 2px);
-  opacity: 0;
-  pointer-events: none;
+  content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
+  border: 6px solid #fff; border-radius: inherit; opacity: 0; pointer-events: none;
 }
-/* täyttökerros: liukuväri, aalto ja kiilto */
-.fill {
-  position: absolute;
-  top: 0; right: 0; bottom: 0; left: 0;
-  border-radius: inherit;
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--c1), var(--c2));
-  opacity: 0;
-  transition: opacity .3s;
-}
-.fill::before {
-  content: '';
-  position: absolute; top: 0; bottom: 0; left: 0;
-  width: 60%;
-  background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.45), rgba(255,255,255,0));
-  transform: translateX(-120%);
-}
-.aalto {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255,255,255,.45);
-  transform: scale(0);
-  animation: aalto .65s cubic-bezier(.1,.6,.3,1) forwards;
-  pointer-events: none;
-}
-@keyframes aalto { to { transform: scale(1); opacity: 0; } }
-
-.nimi { position: relative; z-index: 2; display: block; will-change: transform; }
-
 .pad.soi {
-  transform: scale(.965);
-  box-shadow: 0 22px 60px -14px var(--c1), 0 0 0 2px rgba(255,255,255,.9);
+  animation: hyytelo .55s ease-out;
+  background-color: #fff200;
+  box-shadow: 0 0 0 6px #fff, 0 0 50px hsl(var(--h), 100%, 60%);
   z-index: 2;
 }
-.pad.soi::before { opacity: 0; }
-.pad.soi .fill { opacity: 1; transition: opacity .05s; }
-.pad.soi .fill::before { animation: pyyhkaisy .7s cubic-bezier(.4,0,.2,1); }
-@keyframes pyyhkaisy { from { transform: translateX(-120%); } to { transform: translateX(260%); } }
-.pad.soi .nimi { text-shadow: 0 2px 12px rgba(0,0,0,.35); animation: nosto .5s cubic-bezier(.2,1.6,.4,1); }
-@keyframes nosto { from { transform: scale(1.25); } to { transform: scale(1); } }
-.pad.soi::after, .pad.vilkku::after { animation: rengas .7s cubic-bezier(.1,.7,.3,1); }
-@keyframes rengas {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.3); }
+@keyframes hyytelo {
+  0% { transform: scale(1.3, .7) rotate(-6deg); } 30% { transform: scale(.8, 1.2) rotate(5deg); }
+  50% { transform: scale(1.1, .92); } 70% { transform: scale(.97, 1.03); } 100% { transform: scale(.95); }
 }
-.pad.vilkku .fill { opacity: .35; }
+.pad.soi::after, .pad.vilkku::after { animation: isku .6s ease-out; }
+@keyframes isku { 0% { opacity: 1; transform: scale(1) rotate(0); } 100% { opacity: 0; transform: scale(1.7) rotate(12deg); } }
 
-body.soi .pad.taysi:not(.soi) { opacity: .45; }
+.nimi { display: block; position: relative; will-change: transform; }
+.flip { display: inline-block; }
+.flip.ylosalaisin { transform: rotate(180deg); }
+.flip.peili { transform: scaleX(-1); }
+.flip.vino { transform: rotate(-20deg); }
+.pad.soi .nimi { animation: pomppu .45s cubic-bezier(.2,1.8,.4,1); }
+@keyframes pomppu { 0% { transform: scale(1.9) rotate(-20deg); } 100% { transform: scale(1); } }
 
 .prog {
-  position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 5px;
-  background: rgba(255,255,255,.9);
-  transform-origin: 0 50%;
-  transform: scaleX(0);
+  position: absolute; left: 14px; right: 14px; bottom: 18px; height: 7px; border-radius: 4px;
+  background: #000; opacity: 0; transform-origin: 0 50%; transform: scaleX(0);
 }
-.pad.soi .prog { animation-name: etene; animation-timing-function: linear; animation-fill-mode: forwards; }
+.pad.soi .prog { opacity: .8; animation-name: etene; animation-timing-function: linear; animation-fill-mode: forwards; }
 @keyframes etene { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 .pad.lataa { opacity: .3; }
-
 .pad.tyhja {
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
-  background: rgba(255,255,255,.015);
-  color: rgba(244,245,251,.28);
-  font-size: 15px;
-  font-weight: 600;
+  background: rgba(0,0,0,.3);
+  border: 3px dashed rgba(255,255,255,.25);
+  color: rgba(255,255,255,.4);
+  font-size: 17px; font-weight: bold;
 }
 
-/* ================= MUOKKAUSTILA ================= */
+/* Muokkaustilassa kaaos lepää, jotta nappeihin osuu */
 .tools { display: none; }
-body.editing .tools {
-  display: flex;
-  position: absolute;
-  left: 8px; right: 8px; bottom: 10px;
-  justify-content: space-between;
-  z-index: 3;
-}
-.tool {
-  width: 42px; height: 34px;
-  border: 0;
-  border-radius: 12px;
-  background: rgba(255,255,255,.12);
-  color: #fff;
-  font-size: 15px;
-}
-.tool.poista { background: rgba(255,59,92,.85); }
-body.editing .pad.taysi { box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
-
+body.editing .pad.taysi { animation: none; transform: none; }
+body.editing #tilt { animation: none; }
+body.editing .tools { display: flex; position: absolute; left: 6px; right: 6px; bottom: 10px; justify-content: space-between; }
+.tool { width: 42px; height: 34px; border: 0; border-radius: 9px; background: rgba(0,0,0,.65); color: #fff; font-size: 16px; }
+.tool.poista { background: #b80028; }
 #fileInput { display: none; }
 
-/* ================= VIERITYS JA MUOKKAUSNAPPI ================= */
 #bar {
   position: fixed;
   top: calc(var(--ylapalkki) + 30px + env(safe-area-inset-top, 0px));
-  right: 8px;
-  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
-  width: var(--palkki-leveys);
-  border-radius: 18px;
-  background: rgba(255,255,255,.035);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
-  z-index: 2;
+  right: 8px; bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  width: var(--palkki-leveys); border-radius: 16px;
+  background: rgba(0,0,0,.45); box-shadow: inset 0 0 0 3px #fff200;
+  z-index: 3;
 }
 #bar.piilossa { display: none; }
 #thumb {
-  position: absolute;
-  left: 7px; right: 7px; top: 0;
-  min-height: 60px;
-  border-radius: 13px;
-  background: linear-gradient(180deg, #7f5af0, #2cb1ff);
-  box-shadow: 0 8px 26px -6px rgba(44,177,255,.7), inset 0 1px 0 rgba(255,255,255,.4);
+  position: absolute; left: 7px; right: 7px; top: 0; min-height: 60px; border-radius: 11px;
+  background: linear-gradient(#ff0000, #ffea00, #00ff5e, #00c8ff, #b400ff);
 }
 #editBtn {
-  position: fixed;
-  right: 8px;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  width: var(--palkki-leveys);
-  height: 48px;
-  border: 0;
-  border-radius: 16px;
-  background: rgba(255,255,255,.06);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
-  color: var(--himmea);
-  font-family: inherit;
-  font-size: 17px;
-  z-index: 2;
+  position: fixed; right: 8px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  width: var(--palkki-leveys); height: 46px;
+  border: 0; border-radius: 14px;
+  background: #000; box-shadow: inset 0 0 0 3px #fff200;
+  color: #fff200; font-size: 18px; font-weight: bold;
+  z-index: 3;
 }
-body.editing #editBtn { background: #fff; color: var(--pohja); font-size: 13px; font-weight: 700; }
+body.editing #editBtn { background: #fff200; color: #000; font-size: 13px; }
 
-/* Kevyt tila */
-body.kevyt #aurora, body.kevyt #splash, body.kevyt #bloom { display: none; }
-body.kevyt #now { -webkit-backdrop-filter: none; backdrop-filter: none; background: #12131d; }
-body.kevyt #stop::before { animation: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .valo, #stop::before, #bloom.isku, #splash.nayta, #splash.nayta #splashIn,
-  .pad.soi::after, .pad.vilkku::after, .pad.soi .nimi, .pad.soi .fill::before, .aalto, #score.pop { animation: none; }
-}
+body.kevyt #bg, body.kevyt #raysWrap, body.kevyt .sade, body.kevyt #dvd, body.kevyt #vhs, body.kevyt #scan { display: none; }
+body.kevyt .pad.taysi { animation-name: none; }
 </style>
 </head>
 <body>
-<div id="aurora"><div class="valo v1"></div><div class="valo v2"></div><div class="valo v3"></div></div>
-<div id="dots"></div>
+<div id="check"></div>
+<div id="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div id="raysWrap"><div id="rays"></div></div>
 <div id="top">
-  <button id="stop" type="button"><span class="sisalto"><span class="ikoni"></span>STOP</span></button>
-  <div id="now">
-    <span class="otsake">NYT SOI</span>
-    <span id="nowName">Hiljaista</span>
-    <div id="scoreBox"><span class="otsake">PISTEET</span><span id="score">000000</span></div>
-    <div id="spec"></div>
-  </div>
+  <button id="stop" type="button"><span id="stopText">STOP</span></button>
+  <div id="now"><span id="nowText">Hiljaista??</span><div id="score">PISTEET 0</div><div id="vu"><div id="vuCover"></div></div></div>
 </div>
-<div id="stage"><div id="board"></div></div>
+<div id="stage"><div id="tilt"><div id="board"></div></div></div>
 <div id="bar"><div id="thumb"></div></div>
 <button id="editBtn" type="button">✎</button>
+<div id="ticker"><span>★ 🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑 ★</span></div>
 <input id="fileInput" type="file" accept="audio/mpeg,.mp3,audio/*" multiple>
-<div id="bloom"></div>
-<div id="splash"><span id="splashIn"></span></div>
+<div id="dvd">SOUNDBOARD 3000</div>
+<div id="illu"><span>👁️</span></div>
+<div id="flash"></div>
+<div id="splash"></div>
+<div id="combo"></div>
+<div id="vhs"></div>
+<div id="scan"></div>
 
 <script>
 (function () {
   'use strict';
 
   var PAIKKOJA = 100;
-  // Jos iPad nykii: vaihda true. Revontulet, lasisumennus, valopurkaus ja jättiteksti jäävät pois.
+  // Jos iPad sulaa: vaihda true. Tausta, sade, DVD-logo, juovat ja painikkeiden heilunta jäävät pois.
   var KEVYT = false;
-  // Houkuttelutila: kun mitään ei ole painettu näin moneen sekuntiin,
-  // painikkeet välähtelevät hiljaa. 0 = pois päältä.
-  var HOUKUTTELU_SEK = 20;
-  // Liukuväriparit painikkeille
-  var PARIT = [
-    ['#7f5af0', '#2cb1ff'], ['#ff4d8d', '#ff9a3c'], ['#00d98b', '#00c2f5'],
-    ['#f72585', '#7209b7'], ['#ffc53d', '#ff5e62'], ['#4cc9f0', '#4361ee'],
-    ['#a3e635', '#10b981'], ['#c084fc', '#f472b6']
-  ];
-  var PALKKEJA = 32;
-
   if (KEVYT) document.body.classList.add('kevyt');
+
+  var EMOJIT = ['🍑','💯','🍆','😂','🎯'];
+  var MEMET = ['MEININKIÄ','VITTU'];
+  var POPUPIT = [
+    'Paras keikka evö', 'Riku on ihana', 'Kullinlutkuttajat'
+  ];
+  var FONTIT = [
+    ['"Comic Sans MS", "Chalkboard SE", cursive', 22], ['Papyrus, fantasy', 22], ['Zapfino, cursive', 13],
+    ['Chalkduster, cursive', 20], ['"Marker Felt", cursive', 24], ['Noteworthy, cursive', 22],
+    ['"Snell Roundhand", cursive', 26], ['"American Typewriter", serif', 21], ['Copperplate, serif', 21],
+    ['"Futura-CondensedExtraBold", Impact, sans-serif', 28], ['"Courier New", monospace', 21],
+    ['"Party LET", cursive', 30], ['"Bradley Hand", cursive', 24], ['Didot, serif', 24]
+  ];
+  var MUODOT = ['20px', '34px 10px 34px 10px', '10px 34px 10px 34px', '50%', '14px 14px 40px 40px', '40px 40px 14px 14px', '50% 50% 20px 20px / 30px 30px 20px 20px', '0'];
+  var STOPIT = ['STOP', 'SEIS', 'STOPPPP'];
+  var REKT = ['HILJAISUUS'];
+  var OUDOT = ['NaN', '∞', 'LOL', '404', 'π', '-0', 'BANAANI', '??', 'OVER 9000', '¯\\_(ツ)_/¯', 'ANKKA'];
+
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
 
   /* ---------- Ääni: yksi sample kerrallaan ---------- */
   var AC = window.AudioContext || window.webkitAudioContext;
@@ -481,11 +534,9 @@ body.kevyt #stop::before { animation: none; }
   var master = ctx.createGain();
   var analyser = ctx.createAnalyser();
   analyser.fftSize = 512;
-  analyser.smoothingTimeConstant = 0.72;
   master.connect(analyser);
   analyser.connect(ctx.destination);
   var wave = new Uint8Array(analyser.fftSize);
-  var freq = new Uint8Array(analyser.frequencyBinCount);
 
   var buffers = {};
   var current = null;
@@ -541,19 +592,13 @@ body.kevyt #stop::before { animation: none; }
       }
     };
     lightUp(p, b.duration, x, y);
-    addScore();
     startMeter();
   }
 
-  /* ---------- Analysaattori ja äänen tahdissa hehkuvat asiat ---------- */
-  var aurora = document.getElementById('aurora');
-  var spec = document.getElementById('spec');
-  var bars = [];
-  for (var bi = 0; bi < PALKKEJA; bi++) {
-    var bar_i = document.createElement('i');
-    spec.appendChild(bar_i);
-    bars.push(bar_i);
-  }
+  /* ---------- Äänen tahdissa ---------- */
+  var bg = document.getElementById('bg');
+  var raysWrap = document.getElementById('raysWrap');
+  var vuCover = document.getElementById('vuCover');
   var level = 0, meterOn = false;
 
   function startMeter() {
@@ -562,102 +607,195 @@ body.kevyt #stop::before { animation: none; }
     requestAnimationFrame(tick);
   }
   function tick() {
-    var peak = 0, i;
+    var peak = 0;
     if (current) {
       analyser.getByteTimeDomainData(wave);
-      for (i = 0; i < wave.length; i += 2) {
+      for (var i = 0; i < wave.length; i += 2) {
         var v = Math.abs(wave[i] - 128);
         if (v > peak) peak = v;
       }
       peak = Math.min(1, peak / 110);
-      analyser.getByteFrequencyData(freq);
     }
     level = Math.max(peak, level * 0.86);
-    for (i = 0; i < PALKKEJA; i++) {
-      // logaritminen jako: bassoille enemmän palkkeja kuin diskantille
-      var bin = 1 + Math.floor(Math.pow(i / PALKKEJA, 1.9) * 150);
-      var val = current ? freq[bin] / 255 : 0;
-      bars[i].style.transform = 'scaleY(' + Math.max(0.06, val).toFixed(3) + ')';
+    vuCover.style.transform = 'scaleX(' + (1 - level).toFixed(3) + ')';
+    if (!KEVYT) {
+      bg.style.transform = 'scale(' + (1 + level * 0.3).toFixed(3) + ')';
+      raysWrap.style.opacity = (0.15 + level * 0.6).toFixed(3);
     }
-    if (!KEVYT) aurora.style.opacity = (0.7 + level * 0.3).toFixed(3);
     if (current && els[current.id]) {
       var n = els[current.id].querySelector('.nimi');
-      if (n && !n.style.animationName) n.style.transform = 'scale(' + (1 + level * 0.12).toFixed(3) + ')';
+      if (n && !n.style.animationName) n.style.transform = 'scale(' + (1 + level * 0.5).toFixed(3) + ') rotate(' + (level * 20 - 10).toFixed(1) + 'deg)';
     }
     if (current || level > 0.01) requestAnimationFrame(tick);
     else {
       meterOn = false; level = 0;
-      aurora.style.opacity = '';
-      for (i = 0; i < PALKKEJA; i++) bars[i].style.transform = 'scaleY(.06)';
+      vuCover.style.transform = 'scaleX(1)';
+      bg.style.transform = '';
+      raysWrap.style.opacity = '';
     }
   }
 
-  /* ---------- Visuaalit ---------- */
-  var bloom = document.getElementById('bloom');
+  /* ---------- Efektit ---------- */
+  var flash = document.getElementById('flash');
   var splash = document.getElementById('splash');
-  var splashIn = document.getElementById('splashIn');
   var now = document.getElementById('now');
-  var nowName = document.getElementById('nowName');
+  var nowText = document.getElementById('nowText');
   var top = document.getElementById('top');
+  var stage = document.getElementById('stage');
+  var comboEl = document.getElementById('combo');
+  var illu = document.getElementById('illu');
+  var scoreEl = document.getElementById('score');
 
   function restart(el, cls) {
     el.classList.remove(cls);
     void el.offsetWidth;
     el.classList.add(cls);
   }
+  function later(el, ms) { setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, ms); }
+  function randColor() { return 'hsl(' + Math.floor(Math.random() * 360) + ',100%,60%)'; }
 
   function hash(str) {
     var h = 0;
     for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
     return Math.abs(h);
   }
-  function colors(id) { return PARIT[hash(id) % PARIT.length]; }
-  function grad(c, deg) { return 'linear-gradient(' + deg + 'deg,' + c[0] + ',' + c[1] + ')'; }
 
-  function burst(x, y, color) {
-    if (KEVYT) return;
-    bloom.style.left = x + 'px';
-    bloom.style.top = y + 'px';
-    bloom.style.background = 'radial-gradient(circle,' + color + 'bb 0%,' + color + '00 62%)';
-    restart(bloom, 'isku');
+  function confetti(x, y) {
+    var parts = [];
+    for (var i = 0; i < 18; i++) {
+      var d = document.createElement('div');
+      d.className = 'kipina';
+      if (i % 2 === 0) d.textContent = pick(EMOJIT);
+      else { d.style.background = randColor(); d.style.borderRadius = i % 3 ? '50%' : '2px'; }
+      d.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(.3)';
+      document.body.appendChild(d);
+      parts.push(d);
+    }
+    void document.body.offsetWidth;
+    parts.forEach(function (d, i) {
+      var a = (i / parts.length) * Math.PI * 2 + Math.random() * 0.6;
+      var dist = rnd(110, 300);
+      d.style.transform = 'translate(' + (x + Math.cos(a) * dist) + 'px,' + (y + Math.sin(a) * dist + 60) + 'px) rotate(' + Math.round(rnd(-720, 720)) + 'deg) scale(' + (d.textContent ? 1.5 : 1) + ')';
+      d.style.opacity = '0';
+    });
+    parts.forEach(function (d) { later(d, 950); });
   }
 
-  function bigText(text, c) {
-    if (KEVYT) return;
-    splashIn.textContent = text;
-    splashIn.style.backgroundImage = grad(c, 90);
-    restart(splash, 'nayta');
+  function hitmarker(x, y) {
+    var h = document.createElement('div');
+    h.className = 'hit';
+    h.style.left = x + 'px'; h.style.top = y + 'px';
+    document.body.appendChild(h);
+    later(h, 400);
+  }
+
+  function meme(text) {
+    var d = document.createElement('div');
+    d.className = 'meme';
+    d.style.left = Math.round(window.innerWidth * rnd(0.05, 0.75)) + 'px';
+    d.style.top = Math.round(window.innerHeight * rnd(0.15, 0.85)) + 'px';
+    d.style.transform = 'rotate(' + Math.round(rnd(-35, 35)) + 'deg)';
+    var s = document.createElement('span');
+    s.textContent = text || pick(MEMET);
+    s.style.fontSize = Math.round(rnd(30, 90)) + 'px';
+    s.style.fontFamily = pick(FONTIT)[0];
+    d.appendChild(s);
+    document.body.appendChild(d);
+    later(d, 1150);
+  }
+
+  function popup() {
+    var w = document.createElement('div');
+    w.className = 'ikkuna';
+    w.style.left = Math.round(rnd(10, window.innerWidth - 340)) + 'px';
+    w.style.top = Math.round(rnd(80, window.innerHeight - 200)) + 'px';
+    w.innerHTML = '<div class="otsikko">' + pick(['Virhe', 'Varoitus', 'Huomio!!', 'Järjestelmä', 'Ankka.exe']) +
+      '<b>×</b></div><div class="runko">⚠️ ' + pick(POPUPIT) + '<span class="ok">OK</span></div>';
+    document.body.appendChild(w);
+    later(w, 1650);
+  }
+
+  function dealWithIt() {
+    var g = document.createElement('div');
+    g.className = 'lasit';
+    g.innerHTML = '<b>🕶️</b><em>DEAL WITH IT</em>';
+    document.body.appendChild(g);
+    later(g, 1900);
+  }
+
+  var combo = 0, lastHit = 0, score = 0;
+  function comboName(c) {
+    if (c >= 12) return 'GODLIKE';
+    if (c >= 9) return 'UNSTOPPABLE';
+    if (c >= 7) return 'MONSTER KILL';
+    if (c >= 5) return 'MULTI KILL';
+    if (c === 4) return 'QUADRA KILL';
+    if (c === 3) return 'OH BABY A TRIPLE';
+    if (c === 2) return 'DOUBLE KILL';
+    return '';
+  }
+
+  function addScore() {
+    var r = Math.random();
+    if (r < 0.2) score *= 2;
+    else score += pick([100, 100, 9000, -42, 1, 1337, -500, 777]);
+    scoreEl.textContent = 'PISTEET ' + (Math.random() < 0.3 ? pick(OUDOT) : score);
+    restart(scoreEl, 'pop');
+  }
+
+  function stageFx(cls) {
+    ['nytky', 'zoom', 'tarise', 'kieppi'].forEach(function (c) { stage.classList.remove(c); });
+    restart(stage, cls);
   }
 
   function lightUp(p, dur, x, y) {
-    var c = colors(p.id);
     var el = els[p.id];
     if (el) {
       var r = el.getBoundingClientRect();
       if (x === undefined) { x = r.left + r.width / 2; y = r.top + r.height / 2; }
-      var fill = el.querySelector('.fill');
       var prog = el.querySelector('.prog');
       prog.style.webkitAnimationDuration = dur + 's';
       prog.style.animationDuration = dur + 's';
       var n = el.querySelector('.nimi');
       n.style.transform = '';
       restart(el, 'soi');
-      n.style.animationName = 'nosto';
-      setTimeout(function () { n.style.animationName = ''; }, 500);
-
-      // aalto kosketuskohdasta
-      var size = Math.max(r.width, r.height) * 2.2;
-      var a = document.createElement('span');
-      a.className = 'aalto';
-      a.style.width = a.style.height = size + 'px';
-      a.style.left = (x - r.left - size / 2) + 'px';
-      a.style.top = (y - r.top - size / 2) + 'px';
-      fill.appendChild(a);
-      setTimeout(function () { if (a.parentNode) a.parentNode.removeChild(a); }, 700);
+      n.style.animationName = 'pomppu';
+      setTimeout(function () { n.style.animationName = ''; }, 450);
     }
     document.body.classList.add('soi');
-    if (x !== undefined) burst(x, y, c[0]);
-    bigText(p.name, c);
+
+    var t = Date.now();
+    combo = (t - lastHit < 1500) ? combo + 1 : 1;
+    lastHit = t;
+
+    if (x !== undefined) { hitmarker(x, y); confetti(x, y); }
+    flash.style.background = randColor();
+    restart(flash, 'isku');
+
+    splash.textContent = p.name;
+    splash.style.color = randColor();
+    splash.style.fontFamily = pick(FONTIT)[0];
+    ['lenna', 'spin', 'slam', 'venyy'].forEach(function (c) { splash.classList.remove(c); });
+    restart(splash, pick(['lenna', 'spin', 'slam', 'venyy']));
+
+    var m = Math.min(2 + Math.floor(combo / 2), 6);
+    for (var i = 0; i < m; i++) meme();
+    if (Math.random() < 0.3) popup();
+
+    var name = comboName(combo);
+    if (name) {
+      comboEl.textContent = name + (combo > 2 ? ' x' + combo : '');
+      comboEl.style.fontFamily = pick(FONTIT)[0];
+      restart(comboEl, 'slam');
+    }
+    var roll = Math.random();
+    if (roll < 0.08) stageFx('kieppi');
+    else if (combo >= 3 || roll < 0.3) { stageFx('zoom'); restart(top, 'zoom'); }
+    else stageFx('nytky');
+    if (combo >= 3 || Math.random() < 0.15) restart(illu, 'nayta');
+    if ((combo >= 5 && combo % 5 === 0) || Math.random() < 0.07) dealWithIt();
+
+    addScore();
     showNow(p);
   }
 
@@ -672,65 +810,94 @@ body.kevyt #stop::before { animation: none; }
   }
 
   function showNow(p) {
-    if (p) {
-      nowName.textContent = p.name;
-      nowName.style.backgroundImage = grad(colors(p.id), 90);
-      restart(now, 'soi');
-    } else {
-      now.classList.remove('soi');
-      nowName.textContent = 'Hiljaista';
-      nowName.style.backgroundImage = '';
-    }
-  }
-
-  /* ---------- Pisteet ---------- */
-  var score = 0;
-  var scoreEl = document.getElementById('score');
-  function addScore() {
-    score += 100;
-    var s = String(score);
-    while (s.length < 6) s = '0' + s;
-    scoreEl.textContent = s;
-    restart(scoreEl, 'pop');
+    nowText.innerHTML = '';
+    var txt = p ? p.name : pick(['Hiljaista??', 'zzz', '...', 'Kuka siellä?', 'HILJAISTA', 'Tyhjää']);
+    Array.from(txt).slice(0, 40).forEach(function (c, i) {
+      var s = document.createElement('span');
+      s.className = 'k';
+      s.textContent = c === ' ' ? '\u00a0' : c;
+      if (p) {
+        s.style.color = randColor();
+        s.style.fontFamily = pick(FONTIT)[0];
+      }
+      s.style.animationDelay = (i * 0.05) + 's';
+      nowText.appendChild(s);
+    });
   }
 
   /* ---------- STOP ---------- */
-  var REKT = ['GET REKT', 'REKT', 'GG EZ', 'NOPE', 'WASTED'];
   var stopBtn = document.getElementById('stop');
+  var stopText = document.getElementById('stopText');
   var stopTouched = false;
-  function hitStop(x, y) {
+  setInterval(function () { stopText.textContent = pick(STOPIT); }, 700);
+  function hitStop() {
     var wasPlaying = !!current;
     stopCurrent();
     restart(stopBtn, 'isku');
     setTimeout(function () { stopBtn.classList.remove('isku'); }, 150);
-    if (x === undefined) {
-      var r = stopBtn.getBoundingClientRect();
-      x = r.left + r.width / 2; y = r.top + r.height / 2;
+    restart(top, 'tarise');
+    stageFx('tarise');
+    flash.style.background = '#ff1f3d';
+    restart(flash, 'isku');
+    if (wasPlaying) {
+      splash.textContent = pick(REKT);
+      splash.style.color = '#ff1f3d';
+      splash.style.fontFamily = pick(FONTIT)[0];
+      ['lenna', 'spin', 'slam', 'venyy'].forEach(function (c) { splash.classList.remove(c); });
+      restart(splash, 'slam');
+      meme(); meme(); meme();
+      if (Math.random() < 0.5) popup();
     }
-    burst(x, y, '#ff3b5c');
-    if (wasPlaying) bigText(REKT[Math.floor(Math.random() * REKT.length)], ['#ff3b5c', '#ff7a45']);
+    combo = 0;
   }
-  stopBtn.addEventListener('touchstart', function (e) {
-    stopTouched = true; e.preventDefault();
-    hitStop(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: false });
-  stopBtn.addEventListener('click', function (e) { if (!stopTouched) hitStop(e.clientX, e.clientY); });
+  stopBtn.addEventListener('touchstart', function (e) { stopTouched = true; e.preventDefault(); hitStop(); }, { passive: false });
+  stopBtn.addEventListener('click', function () { if (!stopTouched) hitStop(); });
 
-  /* ---------- Houkuttelutila ---------- */
-  var lastTouch = Date.now();
-  function touched() { lastTouch = Date.now(); }
-  document.addEventListener('touchstart', touched, true);
-  document.addEventListener('mousedown', touched, true);
-  if (HOUKUTTELU_SEK > 0 && !KEVYT) {
-    setInterval(function () {
-      if (editing || current || Date.now() - lastTouch < HOUKUTTELU_SEK * 1000) return;
-      var ids = Object.keys(els);
-      if (!ids.length) return;
-      var el = els[ids[Math.floor(Math.random() * ids.length)]];
-      restart(el, 'vilkku');
-      setTimeout(function () { el.classList.remove('vilkku'); }, 700);
-    }, 900);
+  /* ---------- Sormen jälki ja jatkuva kaaos ---------- */
+  var lastTrail = 0;
+  document.addEventListener('touchmove', function (e) {
+    if (KEVYT) return;
+    var t = Date.now();
+    if (t - lastTrail < 70) return;
+    lastTrail = t;
+    var d = document.createElement('div');
+    d.className = 'jalki';
+    d.textContent = pick(EMOJIT);
+    d.style.left = e.touches[0].clientX + 'px';
+    d.style.top = e.touches[0].clientY + 'px';
+    document.body.appendChild(d);
+    later(d, 820);
+  }, { passive: true });
+
+  if (!KEVYT) {
+    for (var ri = 0; ri < 10; ri++) {
+      var s = document.createElement('div');
+      s.className = 'sade';
+      s.textContent = pick(EMOJIT);
+      s.style.left = Math.round(rnd(0, 95)) + 'vw';
+      var dur = rnd(5, 12);
+      s.style.animation = 'sada ' + dur.toFixed(1) + 's linear -' + rnd(0, dur).toFixed(1) + 's infinite';
+      document.body.appendChild(s);
+    }
   }
+
+  // satunnainen meemi silloin tällöin itsestään
+  var lastTouch = Date.now();
+  document.addEventListener('touchstart', function () { lastTouch = Date.now(); }, true);
+  document.addEventListener('mousedown', function () { lastTouch = Date.now(); }, true);
+  setInterval(function () {
+    if (editing) return;
+    if (Math.random() < 0.35) meme();
+    if (!current && Date.now() - lastTouch > 8000) {
+      var ids = Object.keys(els);
+      if (ids.length) {
+        var el = els[pick(ids)];
+        restart(el, 'vilkku');
+        setTimeout(function () { el.classList.remove('vilkku'); }, 650);
+      }
+      if (Math.random() < 0.1) popup();
+    }
+  }, 900);
 
   /* ---------- Tallennus (IndexedDB) ---------- */
   var db;
@@ -816,23 +983,29 @@ body.kevyt #stop::before { animation: none; }
     slots.forEach(function (p, i) {
       var el;
       if (p) {
-        var c = colors(p.id);
+        var h = hash(p.id);
+        var f = FONTIT[h % FONTIT.length];
         el = document.createElement('div');
-        el.className = 'pad taysi' + (buffers[p.id] ? '' : ' lataa');
-        el.style.setProperty('--c1', c[0]);
-        el.style.setProperty('--c2', c[1]);
-
-        var fill = document.createElement('div');
-        fill.className = 'fill';
-        var prog = document.createElement('div');
-        prog.className = 'prog';
-        fill.appendChild(prog);
-        el.appendChild(fill);
+        el.className = 'pad taysi w' + (1 + hash(p.id + 'w') % 5) + ' k' + (hash(p.id + 'k') % 6) + (buffers[p.id] ? '' : ' lataa');
+        el.style.setProperty('--h', h % 360);
+        el.style.setProperty('--muoto', MUODOT[hash(p.id + 'm') % MUODOT.length]);
+        el.style.fontFamily = f[0];
+        el.style.fontSize = f[1] + 'px';
+        el.style.color = hash(p.id + 'c') % 2 ? '#fff' : '#140a26';
+        el.style.textShadow = hash(p.id + 'c') % 2 ? '2px 2px 0 #000' : '2px 2px 0 rgba(255,255,255,.5)';
 
         var label = document.createElement('span');
         label.className = 'nimi';
-        label.textContent = p.name;
+        var flip = document.createElement('span');
+        var fl = hash(p.id + 'f') % 8;
+        flip.className = 'flip' + (fl === 2 ? ' vino' : '');
+        flip.textContent = p.name;
+        label.appendChild(flip);
         el.appendChild(label);
+
+        var prog = document.createElement('div');
+        prog.className = 'prog';
+        el.appendChild(prog);
 
         var tools = document.createElement('div');
         tools.className = 'tools';
@@ -975,6 +1148,7 @@ body.kevyt #stop::before { animation: none; }
   window.addEventListener('orientationchange', function () { setTimeout(updateBar, 300); });
 
   /* ---------- Käynnistys ---------- */
+  showNow(null);
   openDB().then(function (d) {
     db = d;
     return allMeta();
