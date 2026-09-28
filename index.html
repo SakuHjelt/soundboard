@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Soundboard">
+<title>Soundboard</title>
+<style>
+/* ===== Värit ja mitat: muokkaa näitä vapaasti ===== */
+:root {
+  --tausta: #0d0620;
+  --neon1: #ff2bd6;
+  --neon2: #00e5ff;
+  --neon3: #ffe600;
+  --stop1: #ff1f3d;
+  --stop2: #1a0008;
+  --rako: 16px;
+  --pad-leveys: 170px;
+  --pad-korkeus: 130px;
+  --pyoristys: 20px;
+  --palkki-leveys: 60px;
+  --ylapalkki: 104px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--tausta);
+  color: #fff;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* ---------- Tausta: liikkuvat läikät, sykkivät musiikin tahtiin ---------- */
+#bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0; will-change: transform; }
+.blob { position: absolute; width: 75vmax; height: 75vmax; border-radius: 50%; opacity: .45; will-change: transform; }
+.b1 { top: -25vmax; left: -25vmax; background: radial-gradient(circle, var(--neon1) 0%, rgba(255,43,214,0) 65%); animation: lipu1 13s ease-in-out infinite alternate; }
+.b2 { bottom: -30vmax; right: -25vmax; background: radial-gradient(circle, var(--neon2) 0%, rgba(0,229,255,0) 65%); animation: lipu2 17s ease-in-out infinite alternate; }
+.b3 { top: 20%; left: 25%; opacity: .25; background: radial-gradient(circle, var(--neon3) 0%, rgba(255,230,0,0) 60%); animation: lipu3 21s ease-in-out infinite alternate; }
+@keyframes lipu1 { to { transform: translate(45vw, 35vh) scale(1.3); } }
+@keyframes lipu2 { to { transform: translate(-50vw, -30vh) scale(.75); } }
+@keyframes lipu3 { to { transform: translate(-30vw, 25vh) scale(1.5); } }
+
+/* CRT-juovat koko ruudun päällä */
+#scan {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 8;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0, rgba(0,0,0,.18) 2px, rgba(0,0,0,0) 2px, rgba(0,0,0,0) 5px);
+}
+
+/* Välähdys */
+#flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; opacity: 0; }
+#flash.isku { animation: valahdys .45s ease-out; }
+@keyframes valahdys { 0% { opacity: .45; } 100% { opacity: 0; } }
+
+/* Jättiteksti joka lentää ruudun yli */
+#splash {
+  position: fixed; top: 50%; left: 0; width: 100%;
+  margin-top: -9vw;
+  pointer-events: none; z-index: 7;
+  text-align: center;
+  font-size: 15vw; line-height: 18vw;
+  font-weight: 900; font-style: italic;
+  white-space: nowrap;
+  -webkit-text-stroke: 4px #000;
+  opacity: 0;
+}
+#splash.lenna { animation: lenna .9s cubic-bezier(.15,.8,.3,1) forwards; }
+@keyframes lenna {
+  0% { opacity: 1; transform: scale(.2) rotate(-14deg); }
+  35% { opacity: 1; transform: scale(1) rotate(-4deg); }
+  100% { opacity: 0; transform: scale(2.4) rotate(6deg); }
+}
+#splash.slam { animation: slam .8s cubic-bezier(.3,1.6,.5,1) forwards; }
+@keyframes slam {
+  0% { opacity: 0; transform: scale(4) rotate(8deg); }
+  25% { opacity: 1; transform: scale(1) rotate(-3deg); }
+  70% { opacity: 1; transform: scale(1.05) rotate(-3deg); }
+  100% { opacity: 0; transform: scale(.9) rotate(-3deg); }
+}
+
+/* Konfetti */
+.kipina {
+  position: fixed; top: 0; left: 0;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
+  pointer-events: none; z-index: 7;
+  transition: transform .8s cubic-bezier(.1,.8,.3,1), opacity .8s ease-in;
+}
+
+/* Koko yläpalkki tärähtää STOPista */
+.tarise { animation: tarise .4s ease-out; }
+@keyframes tarise {
+  0%, 100% { transform: none; }
+  15% { transform: translate(-10px, 4px) rotate(-1deg); }
+  30% { transform: translate(9px, -3px) rotate(1deg); }
+  45% { transform: translate(-7px, 2px); }
+  60% { transform: translate(5px, -1px); }
+  80% { transform: translate(-2px, 0); }
+}
+
+/* ---------- Yläpalkki ---------- */
+#top {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: var(--rako); right: 8px;
+  height: var(--ylapalkki);
+  display: flex;
+  z-index: 3;
+}
+#stop {
+  position: relative;
+  flex: 0 0 auto;
+  width: 38%;
+  min-width: 220px;
+  margin-right: var(--rako);
+  padding: 0;
+  border: 0;
+  border-radius: var(--pyoristys);
+  overflow: hidden;
+  background: var(--stop1);
+  box-shadow: inset 0 -10px 0 rgba(0,0,0,.45), 0 0 0 4px #fff, 0 0 30px rgba(255,31,61,.6);
+  color: #fff;
+  transition: transform .06s;
+}
+/* marssivat varoitusraidat */
+#stop::before {
+  content: '';
+  position: absolute; top: 0; bottom: 0; left: -68px;
+  width: calc(100% + 136px);
+  background: repeating-linear-gradient(-45deg, var(--stop1) 0, var(--stop1) 24px, var(--stop2) 24px, var(--stop2) 48px);
+  opacity: .55;
+  animation: marssi 1.2s linear infinite;
+}
+@keyframes marssi { to { transform: translateX(67.88px); } }
+#stop span {
+  position: relative;
+  font-size: 50px; font-weight: 900; font-style: italic;
+  letter-spacing: .06em;
+  text-shadow: 4px 4px 0 #000, -2px -2px 0 #000;
+}
+#stop:active, #stop.isku { transform: translateY(6px) scale(.96); }
+
+#now {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 14px 22px 0;
+  border-radius: var(--pyoristys);
+  background: rgba(0,0,0,.45);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.14);
+  overflow: hidden;
+}
+#nowText {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 36px; line-height: 48px;
+  font-weight: 900; font-style: italic;
+  color: rgba(255,255,255,.28);
+  transform-origin: 0 50%;
+}
+#now.soi #nowText { animation: pomppu .45s cubic-bezier(.2,1.8,.4,1); text-shadow: 0 0 18px currentColor; }
+
+/* LED-voimakkuusmittari */
+#vu {
+  position: absolute;
+  left: 22px; right: 22px; bottom: 14px;
+  height: 18px;
+  border-radius: 4px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,0) 0, rgba(0,0,0,0) 11px, #120a22 11px, #120a22 15px),
+    linear-gradient(90deg, #39ff14 0%, #39ff14 60%, #ffe600 78%, #ff1f3d 92%, #ff1f3d 100%);
+}
+#vuCover {
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+  background: repeating-linear-gradient(90deg, #2a2140 0, #2a2140 11px, #120a22 11px, #120a22 15px);
+  transform-origin: 100% 50%;
+}
+
+/* ---------- Ruudukko ---------- */
+#board {
+  position: absolute;
+  top: calc(var(--ylapalkki) + 14px + env(safe-area-inset-top, 0px));
+  bottom: 0; left: 0;
+  right: calc(var(--palkki-leveys) + 16px);
+  padding: calc(var(--rako) + 4px) var(--rako);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--pad-leveys), 1fr));
+  grid-auto-rows: var(--pad-korkeus);
+  grid-gap: calc(var(--rako) + 6px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  z-index: 1;
+}
+
+.pad {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 10px 22px;
+  border-radius: var(--pyoristys);
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.12;
+  cursor: pointer;
+}
+
+.pad.taysi {
+  --h: 300;
+  --r: 0deg;
+  --muoto: 20px;
+  background: hsl(var(--h), 95%, 58%);
+  border-radius: var(--muoto);
+  color: #140a26;
+  font-size: 23px;
+  font-weight: 900;
+  font-style: italic;
+  box-shadow: inset 0 -10px 0 hsl(var(--h), 85%, 34%), 0 8px 0 rgba(0,0,0,.5), 0 0 0 3px #140a26;
+  transform: rotate(var(--r));
+  transition: transform .07s, box-shadow .07s, opacity .2s;
+}
+/* kiiltävä heijastus */
+.pad.taysi::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 8px; right: 30%;
+  height: 28%;
+  border-radius: 999px;
+  background: linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,0));
+  pointer-events: none;
+}
+/* iskuaalto */
+.pad.taysi::after {
+  content: '';
+  position: absolute;
+  top: -5px; left: -5px; right: -5px; bottom: -5px;
+  border: 6px solid hsl(var(--h), 100%, 75%);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
+.pad.soi {
+  background: hsl(var(--h), 100%, 72%);
+  transform: rotate(calc(var(--r) * -2)) translateY(7px) scale(.95);
+  box-shadow: inset 0 -3px 0 hsl(var(--h), 85%, 34%), 0 0 0 5px #fff, 0 0 40px hsl(var(--h), 100%, 60%);
+  z-index: 2;
+}
+.pad.soi::after { animation: isku .6s ease-out; }
+@keyframes isku {
+  0% { opacity: 1; transform: scale(1) rotate(0); }
+  100% { opacity: 0; transform: scale(1.55) rotate(6deg); }
+}
+.nimi { display: block; position: relative; will-change: transform; }
+.pad.soi .nimi { animation: pomppu .45s cubic-bezier(.2,1.8,.4,1); }
+@keyframes pomppu { 0% { transform: scale(1.6) rotate(-6deg); } 100% { transform: scale(1); } }
+
+/* muut painikkeet himmenevät kun jokin soi */
+body.soi .pad.taysi:not(.soi) { opacity: .55; }
+
+.prog {
+  position: absolute;
+  left: 14px; right: 14px; bottom: 18px;
+  height: 7px;
+  border-radius: 4px;
+  background: #140a26;
+  opacity: 0;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+.pad.soi .prog { opacity: .75; animation-name: etene; animation-timing-function: linear; animation-fill-mode: forwards; }
+@keyframes etene { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.pad.lataa { opacity: .3; }
+
+.pad.tyhja {
+  background: rgba(0,0,0,.28);
+  border: 2px dashed rgba(255,255,255,.15);
+  color: rgba(255,255,255,.3);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* ---------- Muokkaustila ---------- */
+.tools { display: none; }
+body.editing .pad.taysi { transform: none; opacity: .9; }
+body.editing .tools {
+  display: flex;
+  position: absolute;
+  left: 6px; right: 6px; bottom: 10px;
+  justify-content: space-between;
+}
+.tool {
+  width: 42px; height: 34px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(20,10,38,.6);
+  color: #fff;
+  font-size: 16px;
+}
+.tool.poista { background: #b80028; }
+
+#fileInput { display: none; }
+
+/* ---------- Vierityspalkki ja muokkausnappi ---------- */
+#bar {
+  position: fixed;
+  top: calc(var(--ylapalkki) + 30px + env(safe-area-inset-top, 0px));
+  right: 8px;
+  bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  width: var(--palkki-leveys);
+  border-radius: 16px;
+  background: rgba(0,0,0,.35);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.1);
+  z-index: 2;
+}
+#bar.piilossa { display: none; }
+#thumb {
+  position: absolute;
+  left: 6px; right: 6px; top: 0;
+  min-height: 60px;
+  border-radius: 11px;
+  background: linear-gradient(var(--neon1), var(--neon3), var(--neon2));
+  box-shadow: 0 0 18px rgba(255,43,214,.6);
+}
+#editBtn {
+  position: fixed;
+  right: 8px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  width: var(--palkki-leveys);
+  height: 46px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(0,0,0,.4);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.14);
+  color: rgba(255,255,255,.5);
+  font-size: 17px;
+  font-weight: 700;
+  z-index: 2;
+}
+body.editing #editBtn { color: #140a26; background: var(--neon3); box-shadow: none; font-size: 14px; }
+
+/* ---------- Kevyt tila (katso KEVYT koodin alussa) ---------- */
+body.kevyt #bg, body.kevyt #scan, body.kevyt #splash { display: none; }
+body.kevyt #stop::before { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .blob, #stop::before, #flash.isku, #splash, .pad.soi::after, .pad.soi .nimi, #now.soi #nowText, .tarise { animation: none; }
+}
+</style>
+</head>
+<body>
+<div id="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div id="top">
+  <button id="stop" type="button"><span>STOP</span></button>
+  <div id="now"><span id="nowText">Hiljaista</span><div id="vu"><div id="vuCover"></div></div></div>
+</div>
+<div id="board"></div>
+<div id="bar"><div id="thumb"></div></div>
+<button id="editBtn" type="button">✎</button>
+<input id="fileInput" type="file" accept="audio/mpeg,.mp3,audio/*" multiple>
+<div id="flash"></div>
+<div id="splash"></div>
+<div id="scan"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var PAIKKOJA = 100;
+  // Jos iPad nykii: vaihda true, niin tausta, juovat, jättiteksti ja konfetti jäävät pois.
+  var KEVYT = false;
+  if (KEVYT) document.body.classList.add('kevyt');
+
+  /* ---------- Ääni: yksi sample kerrallaan ---------- */
+  var AC = window.AudioContext || window.webkitAudioContext;
+  var ctx = new AC();
+  var master = ctx.createGain();
+  var analyser = ctx.createAnalyser();
+  analyser.fftSize = 512;
+  master.connect(analyser);
+  analyser.connect(ctx.destination);
+  var wave = new Uint8Array(analyser.fftSize);
+
+  var buffers = {};
+  var current = null;
+
+  function unlock() {
+    if (ctx.state === 'running') return;
+    if (ctx.resume) ctx.resume();
+    var s = ctx.createBufferSource();
+    s.buffer = ctx.createBuffer(1, 1, 22050);
+    s.connect(ctx.destination);
+    s.start(0);
+  }
+  document.addEventListener('touchend', unlock);
+
+  function decode(arrayBuffer) {
+    return new Promise(function (res, rej) {
+      ctx.decodeAudioData(arrayBuffer.slice(0), res, function (e) { rej(e || new Error('decode')); });
+    });
+  }
+
+  function stopCurrent() {
+    if (!current) return;
+    var c = current;
+    current = null;
+    c.src.onended = null;
+    var t = ctx.currentTime;
+    try {
+      c.gain.gain.cancelScheduledValues(t);
+      c.gain.gain.setValueAtTime(1, t);
+      c.gain.gain.linearRampToValueAtTime(0, t + 0.015);
+      c.src.stop(t + 0.02);
+    } catch (e) {}
+    lightOff(c.id);
+    showNow(null);
+  }
+
+  function play(p) {
+    var b = buffers[p.id];
+    if (!b) return;
+    stopCurrent();
+    var src = ctx.createBufferSource();
+    var g = ctx.createGain();
+    src.buffer = b;
+    src.connect(g);
+    g.connect(master);
+    src.start(0);
+    current = { src: src, gain: g, id: p.id };
+    src.onended = function () {
+      if (current && current.src === src) {
+        current = null;
+        lightOff(p.id);
+        showNow(null);
+      }
+    };
+    lightUp(p, b.duration);
+    startMeter();
+  }
+
+  /* ---------- Äänen tahdissa sykkivät asiat ---------- */
+  var bg = document.getElementById('bg');
+  var vuCover = document.getElementById('vuCover');
+  var level = 0, meterOn = false;
+
+  function startMeter() {
+    if (meterOn) return;
+    meterOn = true;
+    requestAnimationFrame(tick);
+  }
+  function tick() {
+    var peak = 0;
+    if (current) {
+      analyser.getByteTimeDomainData(wave);
+      for (var i = 0; i < wave.length; i += 2) {
+        var v = Math.abs(wave[i] - 128);
+        if (v > peak) peak = v;
+      }
+      peak = Math.min(1, peak / 110);
+    }
+    level = Math.max(peak, level * 0.86);   // nopea nousu, hidas lasku
+    vuCover.style.transform = 'scaleX(' + (1 - level).toFixed(3) + ')';
+    if (!KEVYT) bg.style.transform = 'scale(' + (1 + level * 0.18).toFixed(3) + ')';
+    if (current && els[current.id]) {
+      var n = els[current.id].querySelector('.nimi');
+      if (n && !n.style.animationName) n.style.transform = 'scale(' + (1 + level * 0.35).toFixed(3) + ')';
+    }
+    if (current || level > 0.01) requestAnimationFrame(tick);
+    else { meterOn = false; level = 0; vuCover.style.transform = 'scaleX(1)'; bg.style.transform = ''; }
+  }
+
+  /* ---------- Visuaalit ---------- */
+  var flash = document.getElementById('flash');
+  var splash = document.getElementById('splash');
+  var now = document.getElementById('now');
+  var nowText = document.getElementById('nowText');
+  var top = document.getElementById('top');
+
+  function restart(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function hash(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+  function hue(id) { return hash(id) % 360; }
+  function tilt(id) { return ((hash(id + 'r') % 9) - 4) * 0.7; }
+  var MUODOT = ['20px', '34px 10px 34px 10px', '10px 34px 10px 34px', '46px', '14px 14px 40px 40px', '40px 40px 14px 14px'];
+  function shape(id) { return MUODOT[hash(id + 'm') % MUODOT.length]; }
+
+  function confetti(el, h) {
+    if (KEVYT) return;
+    var r = el.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var parts = [];
+    for (var i = 0; i < 14; i++) {
+      var d = document.createElement('div');
+      d.className = 'kipina';
+      d.style.background = 'hsl(' + ((h + (i % 3) * 120 + Math.random() * 40) % 360) + ',100%,62%)';
+      d.style.borderRadius = i % 2 ? '50%' : '2px';
+      d.style.transform = 'translate(' + cx + 'px,' + cy + 'px) scale(.3)';
+      document.body.appendChild(d);
+      parts.push(d);
+    }
+    void document.body.offsetWidth;
+    parts.forEach(function (d, i) {
+      var a = (i / parts.length) * Math.PI * 2 + Math.random() * 0.5;
+      var dist = 90 + Math.random() * 130;
+      var x = cx + Math.cos(a) * dist, y = cy + Math.sin(a) * dist + 40;
+      d.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + Math.round(Math.random() * 720 - 360) + 'deg) scale(1)';
+      d.style.opacity = '0';
+    });
+    setTimeout(function () { parts.forEach(function (d) { d.parentNode.removeChild(d); }); }, 850);
+  }
+
+  function lightUp(p, dur) {
+    var h = hue(p.id);
+    var el = els[p.id];
+    if (el) {
+      var prog = el.querySelector('.prog');
+      prog.style.webkitAnimationDuration = dur + 's';
+      prog.style.animationDuration = dur + 's';
+      var n = el.querySelector('.nimi');
+      n.style.transform = '';
+      restart(el, 'soi');
+      // pomppuanimaation ajan mittari ei ohjaa nimeä
+      n.style.animationName = 'pomppu';
+      setTimeout(function () { n.style.animationName = ''; }, 450);
+      confetti(el, h);
+    }
+    document.body.classList.add('soi');
+    flash.style.background = 'hsl(' + h + ',100%,60%)';
+    restart(flash, 'isku');
+    splash.textContent = p.name;
+    splash.style.color = 'hsl(' + h + ',100%,65%)';
+    splash.classList.remove('slam');
+    restart(splash, 'lenna');
+    showNow(p);
+  }
+
+  function lightOff(id) {
+    var el = els[id];
+    if (el) {
+      el.classList.remove('soi');
+      var n = el.querySelector('.nimi');
+      if (n) n.style.transform = '';
+    }
+    document.body.classList.remove('soi');
+  }
+
+  function showNow(p) {
+    if (p) {
+      nowText.textContent = p.name;
+      nowText.style.color = 'hsl(' + hue(p.id) + ',100%,68%)';
+      restart(now, 'soi');
+    } else {
+      now.classList.remove('soi');
+      nowText.textContent = 'Hiljaista';
+      nowText.style.color = '';
+    }
+  }
+
+  /* ---------- STOP ---------- */
+  var stopBtn = document.getElementById('stop');
+  var stopTouched = false;
+  function hitStop() {
+    var wasPlaying = !!current;
+    stopCurrent();
+    restart(stopBtn, 'isku');
+    setTimeout(function () { stopBtn.classList.remove('isku'); }, 150);
+    restart(top, 'tarise');
+    flash.style.background = '#ff1f3d';
+    restart(flash, 'isku');
+    if (wasPlaying) {
+      splash.textContent = 'STOP';
+      splash.style.color = '#ff1f3d';
+      splash.classList.remove('lenna');
+      restart(splash, 'slam');
+    }
+  }
+  stopBtn.addEventListener('touchstart', function (e) { stopTouched = true; e.preventDefault(); hitStop(); }, { passive: false });
+  stopBtn.addEventListener('click', function () { if (!stopTouched) hitStop(); });
+
+  /* ---------- Tallennus (IndexedDB) ---------- */
+  var db;
+  function openDB() {
+    return new Promise(function (res, rej) {
+      var r = indexedDB.open('soundboard', 1);
+      r.onupgradeneeded = function () {
+        r.result.createObjectStore('meta', { keyPath: 'id' });
+        r.result.createObjectStore('audio', { keyPath: 'id' });
+      };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    });
+  }
+  function req(store, mode, fn) {
+    return new Promise(function (res, rej) {
+      var r = fn(db.transaction(store, mode).objectStore(store));
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    });
+  }
+  function allMeta() {
+    return new Promise(function (res, rej) {
+      var out = [];
+      var r = db.transaction('meta', 'readonly').objectStore('meta').openCursor();
+      r.onsuccess = function () {
+        var c = r.result;
+        if (c) { out.push(c.value); c['continue'](); } else res(out);
+      };
+      r.onerror = function () { rej(r.error); };
+    });
+  }
+  function saveMeta(p) {
+    return req('meta', 'readwrite', function (s) { return s.put({ id: p.id, name: p.name, order: p.order }); });
+  }
+
+  /* ---------- Tila ja näkymä ---------- */
+  var slots = [];
+  for (var k = 0; k < PAIKKOJA; k++) slots.push(null);
+  var els = {};
+  var editing = false;
+  var targetSlot = 0;
+  var board = document.getElementById('board');
+  var editBtn = document.getElementById('editBtn');
+  var fileInput = document.getElementById('fileInput');
+
+  function tool(text, cls, fn) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tool ' + cls;
+    b.textContent = text;
+    b.addEventListener('click', function (e) { e.stopPropagation(); fn(); });
+    return b;
+  }
+
+  function bindPad(el, p) {
+    var usedTouch = false, waiting = false;
+    el.addEventListener('touchstart', function (e) {
+      usedTouch = true;
+      if (editing) return;
+      e.preventDefault();
+      if (ctx.state === 'running') play(p); else waiting = true;
+    }, { passive: false });
+    el.addEventListener('touchend', function (e) {
+      if (editing) return;
+      e.preventDefault();
+      unlock();
+      if (waiting) { waiting = false; play(p); }
+    }, { passive: false });
+    el.addEventListener('click', function () {
+      if (editing) { rename(p); return; }
+      if (usedTouch) return;
+      unlock();
+      play(p);
+    });
+  }
+
+  function render() {
+    var scroll = board.scrollTop;
+    board.innerHTML = '';
+    els = {};
+    slots.forEach(function (p, i) {
+      var el;
+      if (p) {
+        el = document.createElement('div');
+        el.className = 'pad taysi' + (buffers[p.id] ? '' : ' lataa');
+        el.style.setProperty('--h', hue(p.id));
+        el.style.setProperty('--r', tilt(p.id) + 'deg');
+        el.style.setProperty('--muoto', shape(p.id));
+
+        var label = document.createElement('span');
+        label.className = 'nimi';
+        label.textContent = p.name;
+        el.appendChild(label);
+
+        var prog = document.createElement('div');
+        prog.className = 'prog';
+        el.appendChild(prog);
+
+        var tools = document.createElement('div');
+        tools.className = 'tools';
+        tools.appendChild(tool('◀', 'siirra', function () { move(i, -1); }));
+        tools.appendChild(tool('✕', 'poista', function () { remove(p); }));
+        tools.appendChild(tool('▶', 'siirra', function () { move(i, 1); }));
+        el.appendChild(tools);
+
+        bindPad(el, p);
+        els[p.id] = el;
+      } else {
+        el = document.createElement('label');
+        el.className = 'pad tyhja';
+        el.htmlFor = 'fileInput';
+        el.textContent = '+ Lisää sample';
+        el.addEventListener('click', function () { targetSlot = i; });
+      }
+      board.appendChild(el);
+    });
+    board.scrollTop = scroll;
+    updateBar();
+  }
+
+  /* ---------- Muokkaus ---------- */
+  function readFile(file) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader();
+      fr.onload = function () { res(fr.result); };
+      fr.onerror = function () { rej(fr.error); };
+      fr.readAsArrayBuffer(file);
+    });
+  }
+
+  function freeSlotFrom(start) {
+    for (var n = 0; n < PAIKKOJA; n++) {
+      var i = (start + n) % PAIKKOJA;
+      if (!slots[i]) return i;
+    }
+    return -1;
+  }
+
+  fileInput.addEventListener('change', function () {
+    var files = Array.prototype.slice.call(fileInput.files);
+    fileInput.value = '';
+    var chain = Promise.resolve();
+    files.forEach(function (file) {
+      chain = chain.then(function () {
+        var slot = freeSlotFrom(targetSlot);
+        if (slot < 0) { alert('Kaikki ' + PAIKKOJA + ' paikkaa ovat täynnä.'); return; }
+        return readFile(file).then(function (data) {
+          return decode(data).then(function (buf) {
+            var p = {
+              id: Date.now() + '-' + Math.floor(Math.random() * 1e6),
+              name: file.name.replace(/\.[^.]+$/, ''),
+              order: slot
+            };
+            return req('audio', 'readwrite', function (s) { return s.put({ id: p.id, data: data }); })
+              .then(function () { return saveMeta(p); })
+              .then(function () {
+                buffers[p.id] = buf;
+                slots[slot] = p;
+                targetSlot = slot + 1;
+                render();
+              });
+          });
+        })['catch'](function () {
+          alert('Tiedostoa "' + file.name + '" ei voitu lukea. Tarkista, että se on mp3.');
+        });
+      });
+    });
+  });
+
+  function rename(p) {
+    var n = prompt('Painikkeen nimi', p.name);
+    if (n === null) return;
+    n = n.trim();
+    if (!n) return;
+    p.name = n;
+    saveMeta(p);
+    render();
+  }
+
+  function remove(p) {
+    if (!confirm('Poistetaanko "' + p.name + '"?')) return;
+    if (current && current.id === p.id) stopCurrent();
+    req('meta', 'readwrite', function (s) { return s['delete'](p.id); });
+    req('audio', 'readwrite', function (s) { return s['delete'](p.id); });
+    delete buffers[p.id];
+    slots[p.order] = null;
+    render();
+  }
+
+  function move(i, d) {
+    var j = i + d;
+    if (j < 0 || j >= PAIKKOJA) return;
+    var t = slots[i]; slots[i] = slots[j]; slots[j] = t;
+    if (slots[i]) { slots[i].order = i; saveMeta(slots[i]); }
+    if (slots[j]) { slots[j].order = j; saveMeta(slots[j]); }
+    render();
+  }
+
+  editBtn.addEventListener('click', function () {
+    editing = !editing;
+    document.body.classList[editing ? 'add' : 'remove']('editing');
+    editBtn.textContent = editing ? 'Valmis' : '✎';
+  });
+
+  /* ---------- Iso vierityspalkki ---------- */
+  var bar = document.getElementById('bar');
+  var thumb = document.getElementById('thumb');
+
+  function updateBar() {
+    var sh = board.scrollHeight, ch = board.clientHeight;
+    if (sh <= ch + 1) { bar.className = 'piilossa'; return; }
+    bar.className = '';
+    var trackH = bar.clientHeight;
+    var th = Math.max(60, trackH * ch / sh);
+    thumb.style.height = th + 'px';
+    thumb.style.top = ((trackH - th) * board.scrollTop / (sh - ch)) + 'px';
+  }
+
+  function seek(clientY) {
+    var r = bar.getBoundingClientRect();
+    var th = thumb.offsetHeight;
+    var ratio = (clientY - r.top - th / 2) / (r.height - th);
+    ratio = Math.max(0, Math.min(1, ratio));
+    board.scrollTop = ratio * (board.scrollHeight - board.clientHeight);
+    updateBar();
+  }
+
+  bar.addEventListener('touchstart', function (e) { e.preventDefault(); seek(e.touches[0].clientY); }, { passive: false });
+  bar.addEventListener('touchmove', function (e) { e.preventDefault(); seek(e.touches[0].clientY); }, { passive: false });
+  var dragging = false;
+  bar.addEventListener('mousedown', function (e) { dragging = true; seek(e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove', function (e) { if (dragging) seek(e.clientY); });
+  document.addEventListener('mouseup', function () { dragging = false; });
+
+  board.addEventListener('scroll', updateBar);
+  window.addEventListener('resize', updateBar);
+  window.addEventListener('orientationchange', function () { setTimeout(updateBar, 300); });
+
+  /* ---------- Käynnistys ---------- */
+  openDB().then(function (d) {
+    db = d;
+    return allMeta();
+  }).then(function (list) {
+    list.sort(function (a, b) { return a.order - b.order; });
+    list.forEach(function (p) {
+      var i = p.order;
+      if (!(i >= 0 && i < PAIKKOJA) || slots[i]) {
+        i = freeSlotFrom(0);
+        if (i < 0) return;
+        p.order = i;
+        saveMeta(p);
+      }
+      slots[i] = p;
+    });
+    render();
+    var chain = Promise.resolve();
+    slots.forEach(function (p) {
+      if (!p) return;
+      chain = chain.then(function () {
+        return req('audio', 'readonly', function (s) { return s.get(p.id); })
+          .then(function (rec) { return rec ? decode(rec.data) : null; })
+          .then(function (buf) {
+            if (buf) { buffers[p.id] = buf; if (els[p.id]) els[p.id].classList.remove('lataa'); }
+          })['catch'](function () {});
+      });
+    });
+  })['catch'](function () {
+    render();
+    alert('Tallennustilaa ei saatu auki. Avaa sivu osoitteesta (https://...), ei tiedostona.');
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')['catch'](function () {});
+  }
+})();
+</script>
+</body>
+</html>
