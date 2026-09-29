@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Soundboard">
 <title>Soundboard</title>
+<!-- Kotinäytön kuvake: sama kuva kuin STOP-napissa (stop.png) -->
+<link rel="apple-touch-icon" href="stop.png">
 <style>
 /* ===== Värit ja mitat: muokkaa näitä vapaasti ===== */
 :root {
@@ -1270,6 +1272,62 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   padding: 0 2px;
 }
 .nimiAla.vierii { justify-content: flex-start; }
+
+/* =====================================================================
+   INTRO (noin 2 s): musta ruutu, logo sykkii ja välkkyy keskellä ja
+   liukuu sitten STOP-napin paikalle. Napautus ohittaa intron.
+   ===================================================================== */
+#intro {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  transition: background-color .6s ease, opacity .3s ease;
+}
+#intro::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 90vmin; height: 90vmin;
+  margin: -45vmin 0 0 -45vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,160,23,.45) 0%, rgba(212,160,23,0) 65%);
+  opacity: 0;
+  animation: introHehku 1.25s ease-out forwards;
+}
+@keyframes introHehku {
+  0% { opacity: 0; } 15% { opacity: 1; } 25% { opacity: .3; } 35% { opacity: .9; }
+  50% { opacity: .4; } 65% { opacity: .8; } 100% { opacity: .5; }
+}
+#introLogo {
+  position: relative;
+  width: 40vmin; height: 40vmin;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 0 40px rgba(212,160,23,.6), 0 0 0 3px rgba(245,236,216,.2);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+#introLogo.syke { animation: introSyke 1.25s ease-out forwards; }
+@keyframes introSyke {
+  0%   { opacity: 0;   transform: scale(.3); }
+  12%  { opacity: 1;   transform: scale(1.12); }
+  20%  { opacity: .35; transform: scale(1); }
+  26%  { opacity: 1; }
+  34%  {               transform: scale(1.08); }
+  42%  { opacity: .5;  transform: scale(1); }
+  48%  { opacity: 1;   transform: scale(1.06); }
+  60%  {               transform: scale(1); }
+  68%  { opacity: .6; }
+  74%  { opacity: 1;   transform: scale(1.04); }
+  100% { opacity: 1;   transform: scale(1); }
+}
+#intro.siirto { background-color: rgba(0,0,0,0); }
+#intro.siirto::before { opacity: 0; transition: opacity .3s; animation: none; }
+#intro.pois { opacity: 0; }
 </style>
 </head>
 <body>
@@ -1318,6 +1376,9 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 <div id="grid"></div>
 <div id="side"></div>
 <input id="fileInput" type="file" accept="audio/mpeg,.mp3,audio/*" multiple>
+
+<!-- Intro: käyttää samaa kuvaa kuin STOP-nappi -->
+<div id="intro"><img id="introLogo" src="stop.png" alt=""></div>
 
 <script>
 (function () {
@@ -2331,6 +2392,59 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     render();
     alert('Could not open storage. Open the app from its web address (https://...), not as a file.');
   });
+
+  /* ---------- Intro ---------- */
+  (function () {
+    var introEl = document.getElementById('intro');
+    var logo = document.getElementById('introLogo');
+    var stopNappi = document.getElementById('stop');
+    var valmis = false;
+
+    function lopeta() {
+      if (valmis) return;
+      valmis = true;
+      introEl.classList.add('pois');
+      setTimeout(function () { if (introEl.parentNode) introEl.parentNode.removeChild(introEl); }, 350);
+    }
+
+    // logo liukuu STOP-napin kohdalle ja kutistuu sen kokoiseksi
+    function siirra() {
+      if (valmis) return;
+      logo.style.animation = 'none';
+      logo.style.opacity = '1';
+      logo.style.transform = 'none';
+      void logo.offsetWidth;
+      var r = logo.getBoundingClientRect();
+      var t = stopNappi.getBoundingClientRect();
+      var skaala = Math.max(t.width / r.width, t.height / r.height);
+      var dx = (t.left + t.width / 2) - (r.left + r.width / 2);
+      var dy = (t.top + t.height / 2) - (r.top + r.height / 2);
+      logo.style.transition = 'transform .6s cubic-bezier(.7,0,.2,1), opacity .2s ease .5s, box-shadow .6s';
+      logo.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + skaala + ')';
+      logo.style.boxShadow = 'none';
+      logo.style.opacity = '0';
+      introEl.classList.add('siirto');
+      setTimeout(lopeta, 720);
+    }
+
+    function aloita() {
+      logo.classList.add('syke');
+      setTimeout(siirra, 1250);
+    }
+
+    // napautus ohittaa intron
+    introEl.addEventListener('touchstart', function (e) { e.preventDefault(); lopeta(); }, { passive: false });
+    introEl.addEventListener('click', lopeta);
+
+    var hidasLiike = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (hidasLiike) { lopeta(); return; }
+    if (logo.complete && logo.naturalWidth) aloita();
+    else {
+      logo.onload = aloita;
+      logo.onerror = lopeta;              // jos kuvaa ei ole, intro ohitetaan
+    }
+    setTimeout(lopeta, 4000);             // varmistus: intro ei koskaan jää päälle
+  })();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')['catch'](function () {});
