@@ -7,8 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Soundboard">
 <title>Soundboard</title>
-<!-- Kotinäytön kuvake: sama kuva kuin STOP-napissa (stop.png) -->
-<link rel="apple-touch-icon" href="stop.png">
+<!-- Kotinäytön kuvake: stop.png STOP-napin kermanvaalealla pohjalla.
+     Koodi piirtää kuvakkeen automaattisesti, kun sivu avataan Safarissa. -->
+<link id="kuvake" rel="apple-touch-icon" href="stop.png">
 <style>
 /* ===== Värit ja mitat: muokkaa näitä vapaasti ===== */
 :root {
@@ -459,12 +460,12 @@ body.soi #wave i { opacity: .9; }
   right: calc(var(--reuna) + var(--sivu) + var(--rako));
   bottom: calc(var(--reuna) + env(safe-area-inset-bottom, 0px));
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
   grid-gap: var(--rako);
 }
 @media (orientation: portrait) {
-  #grid { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); }
+  #grid { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
   #speed { width: 200px; }
 }
 
@@ -1294,7 +1295,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   width: 90vmin; height: 90vmin;
   margin: -45vmin 0 0 -45vmin;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,160,23,.45) 0%, rgba(212,160,23,0) 65%);
+  background: radial-gradient(circle, rgba(196,15,15,.45) 0%, rgba(196,15,15,0) 65%);
   opacity: 0;
 }
 #intro:not(.pois):not(.siirto)::before { animation: introHehku 1.25s ease-out forwards; }
@@ -1302,16 +1303,24 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   0% { opacity: 0; } 15% { opacity: 1; } 25% { opacity: .3; } 35% { opacity: .9; }
   50% { opacity: .4; } 65% { opacity: .8; } 100% { opacity: .5; }
 }
-#introLogo {
+/* Alusta on logoa vähän isompi. Keskellä STOP-napin kermanvaalea,
+   reunoja kohti punainen ja lopulta musta. */
+#introAlusta {
   position: relative;
-  width: 40vmin; height: 40vmin;
-  object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 0 40px rgba(212,160,23,.6), 0 0 0 3px rgba(245,236,216,.2);
+  padding: 2.6vmin;
+  border-radius: 14px;
+  background: radial-gradient(circle at center, #f5ecd8 0%, #f5ecd8 50%, #c40f0f 75%, #000 100%);
+  box-shadow: 0 0 44px rgba(196,15,15,.5);
   opacity: 0;
   will-change: transform, opacity;
 }
-#introLogo.syke { animation: introSyke 1.25s ease-out forwards; }
+#introAlusta.syke { animation: introSyke 1.25s ease-out forwards; }
+#introLogo {
+  display: block;
+  width: 40vmin; height: 40vmin;
+  object-fit: cover;
+  border-radius: 6px;
+}
 @keyframes introSyke {
   0%   { opacity: 0;   transform: scale(.3); }
   12%  { opacity: 1;   transform: scale(1.12); }
@@ -1328,6 +1337,22 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 #intro.siirto { background-color: rgba(0,0,0,0); }
 #intro.siirto::before { opacity: 0; transition: opacity .3s; animation: none; }
 #intro.pois { opacity: 0; }
+
+/* 7 pankkia: pankkinapit hieman pienemmiksi, jotta ne mahtuvat */
+.pankki { font-size: 26px; }
+.pankki .maara { font-size: 10px; margin-top: 0; }
+.pankki.valittu::before { width: 40px; height: 34px; margin: -24px 0 0 -20px; }
+
+/* ---------- Leveämpi pankkipalkki ----------
+   Pankkinapit ja EDIT oikeassa reunassa. Leveys säädetään tästä. */
+:root { --pankkileveys: 104px; }
+@media (orientation: portrait) { :root { --pankkileveys: 92px; } }
+#side { width: var(--pankkileveys); }
+#grid { right: calc(var(--reuna) + var(--pankkileveys) + var(--rako)); }
+.pankki { font-size: 30px; }
+.pankki .maara { font-size: 11px; }
+.pankki.valittu::before { width: 46px; height: 38px; margin: -26px 0 0 -23px; }
+#editBtn { font-size: 17px; }
 </style>
 </head>
 <body>
@@ -1378,14 +1403,15 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 <input id="fileInput" type="file" accept="audio/mpeg,.mp3,audio/*" multiple>
 
 <!-- Intro: käyttää samaa kuvaa kuin STOP-nappi -->
-<div id="intro"><img id="introLogo" src="stop.png" alt=""></div>
+<div id="intro"><div id="introAlusta"><img id="introLogo" src="stop.png" alt=""></div></div>
 
 <script>
 (function () {
   'use strict';
 
-  var PANKIT = ['A', 'B', 'C', 'D', 'E'];
-  var PER_PANKKI = 20;
+  // 4 x 4 padia per pankki, 7 pankkia (A-G) = 112 paikkaa
+  var PANKIT = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+  var PER_PANKKI = 16;
   var PAIKKOJA = PANKIT.length * PER_PANKKI;
   var AALTOPALKIT = 96;
   // Padien värit: lonkeronsininen ja hedelmäiset makuvärit (greippi, ananas, appelsiini, vadelma, karpalo, lime, persikka, minttu, mustikka)
@@ -1401,46 +1427,9 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   var master = ctx.createGain();
   var analyser = ctx.createAnalyser();
   analyser.fftSize = 512;
-  /* Tasonhallinta, kolme vaihetta:
-     1) jokainen sample tasataan latautuessaan samaan keskivoimakkuuteen (katso tasoita())
-     2) kompressori tasaa voimakkuuseroja samplen sisällä ja efektien jälkeen
-     3) limitteri varmistaa, ettei mikään ylitä kattoa */
-  var comp = ctx.createDynamicsCompressor();
-  /* Huom: selaimen kompressori nostaa tasoa automaattisesti itsekin.
-     Siksi ketjussa ei ole erillistä tasonnostoa, ja lopussa on
-     tasonlasku (trim) ja pehmeä leikkuri, ettei ääni koskaan säröydy. */
-  comp.threshold.value = -18;
-  comp.knee.value = 10;
-  comp.ratio.value = 2.5;
-  comp.attack.value = 0.01;
-  comp.release.value = 0.25;
-  var makeup = ctx.createGain();
-  makeup.gain.value = 1;            // ei ylimääräistä tasonnostoa
-  var limiter = ctx.createDynamicsCompressor();
-  limiter.threshold.value = -4;
-  limiter.knee.value = 2;
-  limiter.ratio.value = 20;
-  limiter.attack.value = 0.003;
-  limiter.release.value = 0.25;
-  // lopullinen tason lasku: kompressorien automaattinen nosto kompensoidaan
-  var trim = ctx.createGain();
-  trim.gain.value = 0.6;            // koko appin lopputaso (0.6 = noin -4 dB)
-  // pehmeä leikkuri: huiput pyöristetään eikä niitä leikata karkeasti
-  var pehmea = ctx.createWaveShaper();
-  (function () {
-    var n = 2048, c = new Float32Array(n);
-    for (var i = 0; i < n; i++) {
-      var x = i * 2 / (n - 1) - 1;
-      c[i] = Math.abs(x) < 0.8 ? x : (x > 0 ? 1 : -1) * (0.8 + 0.2 * Math.tanh((Math.abs(x) - 0.8) / 0.2));
-    }
-    pehmea.curve = c;
-  })();
-  master.connect(comp);
-  comp.connect(makeup);
-  makeup.connect(limiter);
-  limiter.connect(trim);
-  trim.connect(pehmea);
-  pehmea.connect(analyser);
+  /* Ei tasonhallintaa: samplet soivat sellaisinaan, tasot tehdään valmiiksi DAW:ssa.
+     Ääni kulkee: sample -> efektit -> master -> mittari -> ulos. */
+  master.connect(analyser);
   analyser.connect(ctx.destination);
   var wave = new Uint8Array(analyser.fftSize);
 
@@ -1693,7 +1682,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     src.buffer = b;
     src.playbackRate.value = rate;
     src.loop = !!loop;
-    var level = gains[p.id] || 1;
+    var level = 1;
     g.gain.value = level;
     src.connect(g);
     g.connect(fxIn);
@@ -2200,8 +2189,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
      tyhjät paikat litistyvät. Siksi rivien korkeus lasketaan tässä
      pikseleinä ruudukon todellisesta korkeudesta. */
   function mitoitaRuudukko() {
-    var pysty = window.innerHeight > window.innerWidth;
-    var rivit = pysty ? 5 : 4;
+    var rivit = 4;
     var cs = window.getComputedStyle(grid);
     var rako = parseFloat(cs.gridRowGap || cs.rowGap) || 10;
     var korkeus = grid.clientHeight;
@@ -2315,8 +2303,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
               .then(function () { return saveMeta(p); })
               .then(function () {
                 buffers[p.id] = buf;
-                tasoita(p.id, buf);
-                slots[slot] = p;
+                                slots[slot] = p;
                 targetSlot = slot + 1;
                 render();
               });
@@ -2396,8 +2383,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
           .then(function (buf) {
             if (!buf) return;
             buffers[p.id] = buf;
-            tasoita(p.id, buf);
-            var el = els[p.id];
+                        var el = els[p.id];
             if (el) {
               el.classList.remove('lataa');
               var spans = el.querySelectorAll('.meta .pieni');
@@ -2411,6 +2397,29 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     alert('Could not open storage. Open the app from its web address (https://...), not as a file.');
   });
 
+  /* ---------- Kotinäytön kuvake ----------
+     iOS täyttää läpinäkyvät kohdat mustalla, joten kuvake piirretään
+     valmiiksi STOP-napin väriselle pohjalle: kermanvaalea tausta ja
+     kuva 70 % näkyvyydellä, kuten napissa levossa. */
+  var KUVAKE_POHJA = '#f5ecd8';
+  var KUVAKE_NAKYVYYS = 0.7;
+  (function () {
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var c = document.createElement('canvas');
+        c.width = c.height = 180;
+        var g = c.getContext('2d');
+        g.fillStyle = KUVAKE_POHJA;
+        g.fillRect(0, 0, 180, 180);
+        g.globalAlpha = KUVAKE_NAKYVYYS;
+        g.drawImage(img, 0, 0, 180, 180);
+        document.getElementById('kuvake').href = c.toDataURL('image/png');
+      } catch (e) {}
+    };
+    img.src = 'stop.png';
+  })();
+
   /* ---------- Intro ----------
      iOS ei aina lataa kotinäytön appia uudelleen, vaan palauttaa sen
      muistista. Siksi intro näytetään sekä käynnistyksessä että silloin,
@@ -2418,7 +2427,8 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   var PALUU_SEK = 30;
   (function () {
     var introEl = document.getElementById('intro');
-    var logo = document.getElementById('introLogo');
+    var kuva = document.getElementById('introLogo');
+    var logo = document.getElementById('introAlusta');   // liikkuu ja sykkii kuvan kanssa
     var stopNappi = document.getElementById('stop');
     var kaynnissa = false, ajastimet = [];
 
@@ -2456,7 +2466,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
     function nayta() {
       var hidasLiike = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (hidasLiike || !(logo.complete && logo.naturalWidth)) return;
+      if (hidasLiike || !(kuva.complete && kuva.naturalWidth)) return;
       tyhjenna();
       kaynnissa = true;
       // palautetaan alkutila
@@ -2482,10 +2492,10 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
     // käynnistys: musta ruutu on heti näkyvissä, logo tulee kun kuva on ladattu
     kaynnissa = true;
-    if (logo.complete && logo.naturalWidth) nayta();
+    if (kuva.complete && kuva.naturalWidth) nayta();
     else {
-      logo.onload = nayta;
-      logo.onerror = lopeta;               // jos kuvaa ei ole, intro ohitetaan
+      kuva.onload = nayta;
+      kuva.onerror = lopeta;               // jos kuvaa ei ole, intro ohitetaan
       ajasta(lopeta, 2500);
     }
 
