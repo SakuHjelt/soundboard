@@ -1256,6 +1256,20 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   :root { --pill-h: 32px; --nimi-koko: 17px; }
   .pill .teksti { font-size: 10px; }
 }
+
+/* ---------- Padin nimi aina yhdellä rivillä ----------
+   Jos nimi ei mahdu, se vierii hitaasti edestakaisin (vierityksen
+   nopeus ja tauot lasketaan koodissa, katso paivitaVieritys). */
+.pad.taysi .nimi {
+  display: inline-block;
+  -webkit-line-clamp: none;
+  white-space: nowrap;
+  overflow: visible;
+  max-width: none;
+  word-break: normal;
+  padding: 0 2px;
+}
+.nimiAla.vierii { justify-content: flex-start; }
 </style>
 </head>
 <body>
@@ -2099,7 +2113,60 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
       })(i);
     }
     updateBanks();
+    paivitaVieritys();
   }
+
+  /* ---------- Ruudukon rivikorkeudet ----------
+     iOS 12:n Safari ei jaa ruudukon korkeutta tasan riveille, jolloin
+     tyhjät paikat litistyvät. Siksi rivien korkeus lasketaan tässä
+     pikseleinä ruudukon todellisesta korkeudesta. */
+  function mitoitaRuudukko() {
+    var pysty = window.innerHeight > window.innerWidth;
+    var rivit = pysty ? 5 : 4;
+    var cs = window.getComputedStyle(grid);
+    var rako = parseFloat(cs.gridRowGap || cs.rowGap) || 10;
+    var korkeus = grid.clientHeight;
+    var rivi = Math.max(40, Math.floor((korkeus - rako * (rivit - 1)) / rivit));
+    grid.style.gridTemplateRows = 'repeat(' + rivit + ', ' + rivi + 'px)';
+  }
+
+  /* ---------- Pitkien nimien vieritys ----------
+     Mitataan jokaisen padin nimi. Jos se on leveämpi kuin padi, sille
+     tehdään oma edestakainen vieritysanimaatio. */
+  var vieritysTyyli = document.createElement('style');
+  document.head.appendChild(vieritysTyyli);
+  function paivitaVieritys() {
+    var css = '', i = 0;
+    Object.keys(els).forEach(function (id) {
+      var el = els[id];
+      var n = el.querySelector('.nimi');
+      var ala = el.querySelector('.nimiAla');
+      if (!n || !ala) return;
+      n.removeAttribute('data-v');
+      ala.classList.remove('vierii');
+      var ero = n.offsetWidth - ala.clientWidth;
+      if (ero > 2) {
+        i++;
+        var matka = ero + 6;
+        var kesto = Math.max(2.5, matka / 22).toFixed(1);   // noin 22 px sekunnissa
+        n.setAttribute('data-v', i);
+        ala.classList.add('vierii');
+        css += '@keyframes vierii' + i + ' { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(-' + matka + 'px); } }' +
+               '.pad.taysi .nimi[data-v="' + i + '"] { -webkit-animation: vierii' + i + ' ' + kesto + 's ease-in-out infinite alternate; animation: vierii' + i + ' ' + kesto + 's ease-in-out infinite alternate; }';
+      }
+    });
+    vieritysTyyli.textContent = css;
+  }
+
+  function mitoitaKaikki() {
+    mitoitaRuudukko();
+    paivitaVieritys();
+  }
+  window.addEventListener('resize', mitoitaKaikki);
+  window.addEventListener('orientationchange', function () { setTimeout(mitoitaKaikki, 350); });
+  // fontin latautuminen muuttaa nimien leveyttä
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(mitoitaKaikki);
+  setTimeout(mitoitaKaikki, 1200);
 
   var bankBtns = [];
   PANKIT.forEach(function (name, b) {
@@ -2223,6 +2290,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   /* ---------- Käynnistys ---------- */
   showWave(null);
   setSpeed(0);
+  mitoitaRuudukko();
   openDB().then(function (d) {
     db = d;
     req('audio', 'readwrite', function (s) { return s['delete']('__bg__'); })['catch'](function () {});
