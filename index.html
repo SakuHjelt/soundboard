@@ -1,21 +1,37 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Soundboard">
-<title>SOUNDBOARD 3000</title>
+<title>Soundboard</title>
 <style>
+/* ===== Värit ja mitat: muokkaa näitä vapaasti ===== */
 :root {
-  --rako: 18px;
-  --pad-leveys: 170px;
-  --pad-korkeus: 130px;
-  --palkki-leveys: 60px;
-  --ylapalkki: 104px;
-  --meme: "Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive;
+  /* Lonkeroteema: syvä sininen pohja, lonkeronsininen korostus ja valkoiset juoksuratojen raidat */
+  --pohja: #030d18;
+  --paneeli: #071829;
+  --pinta: #0b2135;
+  --pinta2: #102c45;
+  --viiva: #15324b;
+  --teksti: #eef6fb;
+  --himmea: #7c9bb4;
+  --hyvin-himmea: #36526b;
+  --korostus: #16a6e0;     /* lonkeronsininen: aktiivinen pankki, muokkaustila, liu'ut */
+  --raita: rgba(255,255,255,.92);
+  --stop: #ff4d55;
+  --vihrea: #3fdc6a;
+  --rako: 10px;
+  --reuna: 16px;
+  --sivu: 64px;
+  --ylapalkki: 76px;
+  --stopleveys: 180px;     /* STOP-painikkeen leveys */
+  --fxrivi: 92px;          /* efektirivin korkeus */
+  --pyoristys: 8px;
 }
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -24,509 +40,1214 @@
   -webkit-touch-callout: none;
 }
 html, body {
-  margin: 0; height: 100%; overflow: hidden;
-  color: #fff;
-  font-family: var(--meme);
-}
-body { animation: taustavari 2.4s steps(1) infinite; }
-@keyframes taustavari {
-  0% { background: #1a0033; } 17% { background: #002b36; } 33% { background: #330019; }
-  50% { background: #001a33; } 67% { background: #1f3300; } 83% { background: #33001a; }
-}
-
-/* ============ TAUSTAKAAOS ============ */
-#check {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 0; opacity: .07;
-  background-image:
-    linear-gradient(45deg, #fff 25%, rgba(255,255,255,0) 25%, rgba(255,255,255,0) 75%, #fff 75%),
-    linear-gradient(45deg, #fff 25%, rgba(255,255,255,0) 25%, rgba(255,255,255,0) 75%, #fff 75%);
-  background-size: 80px 80px;
-  background-position: 0 0, 40px 40px;
-}
-#bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0; }
-.blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: .5; will-change: transform; }
-.b1 { top: -25vmax; left: -25vmax; background: radial-gradient(circle, #ff00e6 0%, rgba(255,0,230,0) 65%); animation: lipu1 7s ease-in-out infinite alternate; }
-.b2 { bottom: -30vmax; right: -25vmax; background: radial-gradient(circle, #00ffd5 0%, rgba(0,255,213,0) 65%); animation: lipu2 9s ease-in-out infinite alternate; }
-.b3 { top: 20%; left: 25%; background: radial-gradient(circle, #fff200 0%, rgba(255,242,0,0) 60%); opacity: .3; animation: lipu3 11s ease-in-out infinite alternate; }
-@keyframes lipu1 { to { transform: translate(50vw, 40vh) scale(1.4); } }
-@keyframes lipu2 { to { transform: translate(-55vw, -35vh) scale(.7); } }
-@keyframes lipu3 { to { transform: translate(-35vw, 30vh) scale(1.6); } }
-
-#raysWrap {
-  position: fixed; top: 50%; left: 50%;
-  width: 40vmax; height: 40vmax; margin: -20vmax 0 0 -20vmax;
-  pointer-events: none; z-index: 0; opacity: .15;
-}
-#rays {
-  width: 100%; height: 100%; border-radius: 50%;
-  background: repeating-conic-gradient(from 0deg, #ff0000 0deg, #ff0000 10deg, #ffea00 10deg, #ffea00 20deg, #00ff5e 20deg, #00ff5e 30deg, #00c8ff 30deg, #00c8ff 40deg, #b400ff 40deg, #b400ff 50deg);
-  animation: pyori 9s linear infinite;
-  will-change: transform;
-}
-@keyframes pyori { from { transform: scale(4) rotate(0); } to { transform: scale(4) rotate(-360deg); } }
-
-/* DVD-logo joka pomppii kulmasta kulmaan */
-#dvd {
-  position: fixed; left: 0; top: 0;
-  pointer-events: none; z-index: 4;
-  font-size: 34px; font-weight: bold; font-style: italic;
-  -webkit-text-stroke: 1px #000;
-  white-space: nowrap;
-  animation: dvdx 7.3s linear infinite alternate, dvdy 5.1s linear infinite alternate, sateenkaari 2.55s steps(1) infinite;
-}
-@keyframes dvdx { from { left: 0; } to { left: calc(100vw - 290px); } }
-@keyframes dvdy { from { top: 0; } to { top: calc(100vh - 44px); } }
-
-/* Putoavat emojit */
-.sade {
-  position: fixed; top: 0;
-  pointer-events: none; z-index: 4;
-  font-size: 50px;
-  will-change: transform;
-}
-@keyframes sada {
-  from { transform: translateY(-15vh) rotate(0); }
-  to { transform: translateY(115vh) rotate(720deg); }
-}
-
-/* Uutisnauha */
-#ticker {
-  position: fixed; left: 0; bottom: 0;
-  right: calc(var(--palkki-leveys) + 16px);
-  height: 34px;
+  margin: 0;
+  height: 100%;
   overflow: hidden;
-  pointer-events: none; z-index: 4;
-  background: #fff200;
-  color: #000;
-  font-size: 20px; line-height: 34px; font-weight: bold;
-  border-top: 3px solid #000;
+  background:
+    repeating-linear-gradient(180deg, rgba(255,255,255,0) 0, rgba(255,255,255,0) 14px, rgba(22,166,224,.05) 14px, rgba(22,166,224,.05) 16px),
+    radial-gradient(ellipse at 50% 120%, rgba(22,166,224,.18), rgba(22,166,224,0) 60%),
+    var(--pohja);
+  color: var(--teksti);
+  font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-#ticker span { display: inline-block; white-space: nowrap; padding-left: 100%; animation: tickeri 38s linear infinite; }
-@keyframes tickeri { to { transform: translateX(-100%); } }
-
-#scan {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 12;
-  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0, rgba(0,0,0,.18) 2px, rgba(0,0,0,0) 2px, rgba(0,0,0,0) 5px);
+.pieni {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--himmea);
 }
-#vhs {
-  position: fixed; left: 0; top: 0; width: 100%; height: 110px;
-  pointer-events: none; z-index: 12;
-  background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,.12) 40%, rgba(255,0,200,.15) 55%, rgba(255,255,255,0));
-  animation: vhs 4s linear infinite;
-  will-change: transform;
+.luvut { font-variant-numeric: tabular-nums; }
+
+/* ===== Hehku: valot "hengittävät" ja väreilevät epäsäännöllisesti =====
+   Animoidaan vain läpinäkyvyyttä, joka on vanhalle iPadille kevyttä. */
+@keyframes vareily {
+  0%   { opacity: .55; }
+  12%  { opacity: .9; }
+  24%  { opacity: .68; }
+  38%  { opacity: 1; }
+  52%  { opacity: .74; }
+  63%  { opacity: .95; }
+  78%  { opacity: .62; }
+  90%  { opacity: .88; }
+  100% { opacity: .55; }
 }
-@keyframes vhs { 0% { transform: translateY(-120px); } 70% { transform: translateY(110vh); } 100% { transform: translateY(110vh); } }
-
-@keyframes sateenkaari {
-  0% { color: #ff2bd6; } 16% { color: #ffe600; } 33% { color: #39ff14; }
-  50% { color: #00e5ff; } 66% { color: #ff1f3d; } 83% { color: #fff; }
-}
-
-/* ============ PAINALLUSEFEKTIT ============ */
-#flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; opacity: 0; }
-#flash.isku { animation: strobo .5s steps(1); }
-@keyframes strobo { 0% { opacity: .6; } 20% { opacity: 0; } 40% { opacity: .45; } 60% { opacity: 0; } 80% { opacity: .25; } 100% { opacity: 0; } }
-
-#splash {
-  position: fixed; top: 50%; left: 0; width: 100%;
-  margin-top: -9vw;
-  pointer-events: none; z-index: 8;
-  text-align: center;
-  font-size: 15vw; line-height: 18vw;
-  font-weight: 900; font-style: italic;
-  white-space: nowrap;
-  -webkit-text-stroke: 4px #000;
-  text-shadow: -8px 0 #00e5ff, 8px 0 #ff2bd6, 0 10px 0 #000;
+.hehku { position: relative; }
+.hehku::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  border-radius: inherit;
+  pointer-events: none;
   opacity: 0;
-}
-#splash.lenna { animation: lenna .95s cubic-bezier(.15,.8,.3,1) forwards; }
-@keyframes lenna {
-  0% { opacity: 1; transform: scale(.2) rotate(-16deg); }
-  12% { opacity: 1; transform: scale(1.1) rotate(-6deg) translateX(-14px); }
-  16% { transform: scale(1.05) rotate(-4deg) translateX(18px) skewX(-12deg); }
-  40% { opacity: 1; transform: scale(1.05) rotate(-3deg); }
-  100% { opacity: 0; transform: scale(2.6) rotate(8deg); }
-}
-#splash.spin { animation: spin .95s cubic-bezier(.2,.7,.3,1) forwards; }
-@keyframes spin {
-  0% { opacity: 1; transform: scale(.2) rotate(0); }
-  50% { opacity: 1; transform: scale(1.1) rotate(1080deg); }
-  100% { opacity: 0; transform: scale(2.3) rotate(1120deg); }
-}
-#splash.slam { animation: slam .85s cubic-bezier(.3,1.6,.5,1) forwards; }
-@keyframes slam {
-  0% { opacity: 0; transform: scale(5) rotate(10deg); }
-  22% { opacity: 1; transform: scale(1) rotate(-3deg); }
-  28% { transform: scale(1) rotate(-3deg) translateX(20px) skewX(15deg); }
-  34% { transform: scale(1) rotate(-3deg) translateX(-14px); }
-  75% { opacity: 1; transform: scale(1.04) rotate(-3deg); }
-  100% { opacity: 0; transform: scale(.85) rotate(-3deg); }
-}
-#splash.venyy { animation: venyy .9s ease-out forwards; }
-@keyframes venyy {
-  0% { opacity: 1; transform: scale(3, .1); }
-  30% { opacity: 1; transform: scale(.6, 1.6); }
-  50% { transform: scale(1.3, .8); }
-  75% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1) translateY(-40vh) rotate(-30deg); }
+  box-shadow: 0 0 18px 3px var(--hehku, #fff), 0 0 4px 1px var(--hehku, #fff);
 }
 
-.kipina {
-  position: fixed; top: 0; left: 0;
-  width: 14px; height: 14px; margin: -7px 0 0 -7px;
-  pointer-events: none; z-index: 8;
-  font-size: 32px; line-height: 14px; text-align: center;
-  transition: transform .9s cubic-bezier(.1,.8,.3,1), opacity .9s ease-in;
-}
-.jalki {
-  position: fixed; top: 0; left: 0;
-  margin: -18px 0 0 -18px;
-  pointer-events: none; z-index: 9;
-  font-size: 36px;
-  animation: jalki .8s ease-out forwards;
-}
-@keyframes jalki { from { opacity: 1; transform: scale(1.4) rotate(0); } to { opacity: 0; transform: translateY(-80px) scale(.4) rotate(200deg); } }
-
-.hit {
-  position: fixed; width: 60px; height: 60px; margin: -30px 0 0 -30px;
-  pointer-events: none; z-index: 11;
-  animation: hitpop .35s ease-out forwards;
-}
-.hit::before, .hit::after {
-  content: ''; position: absolute; left: 0; top: 27px;
-  width: 60px; height: 6px; background: #fff; box-shadow: 0 0 0 2px #000;
-}
-.hit::before { transform: rotate(45deg); }
-.hit::after { transform: rotate(-45deg); }
-@keyframes hitpop { 0% { transform: scale(1.7); opacity: 1; } 50% { transform: scale(1); opacity: 1; } 100% { transform: scale(.9); opacity: 0; } }
-
-.meme { position: fixed; pointer-events: none; z-index: 9; white-space: nowrap; }
-.meme span {
-  display: inline-block; font-weight: bold;
-  -webkit-text-stroke: 2px #000; text-shadow: 4px 4px 0 #000;
-  animation: memepop 1.1s ease-out forwards, sateenkaari .3s steps(1) infinite;
-}
-@keyframes memepop {
-  0% { transform: scale(0); opacity: 1; } 15% { transform: scale(1.4); } 25% { transform: scale(1); }
-  75% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; }
-}
-
-#combo {
-  position: fixed; top: calc(var(--ylapalkki) + 50px); left: 0; width: 100%;
-  text-align: center; pointer-events: none; z-index: 9;
-  font-size: 9vmin; font-weight: bold; white-space: nowrap;
-  -webkit-text-stroke: 3px #000; text-shadow: 6px 6px 0 #000;
-  opacity: 0;
-}
-#combo.slam { animation: comboslam 1.1s cubic-bezier(.3,1.6,.5,1) forwards, sateenkaari .2s steps(1) infinite; }
-@keyframes comboslam {
-  0% { opacity: 0; transform: scale(3.5) rotate(12deg); } 20% { opacity: 1; transform: scale(1) rotate(-5deg); }
-  30% { transform: scale(1.12) rotate(4deg); } 40% { transform: scale(1) rotate(-3deg); }
-  80% { opacity: 1; transform: scale(1.04) rotate(-3deg); } 100% { opacity: 0; transform: scale(.8) rotate(-3deg); }
-}
-
-#illu {
-  position: fixed; top: 50%; left: 50%; width: 0; height: 0;
-  margin: -30vmin 0 0 -26vmin;
-  border-left: 26vmin solid transparent; border-right: 26vmin solid transparent;
-  border-bottom: 45vmin solid rgba(57,255,20,.4);
-  transform-origin: 50% 66%;
-  pointer-events: none; z-index: 5; opacity: 0;
-}
-#illu span { position: absolute; top: 19vmin; left: -9vmin; width: 18vmin; text-align: center; font-size: 15vmin; line-height: 15vmin; }
-#illu.nayta { animation: illu 1.4s ease-in-out forwards; }
-@keyframes illu {
-  0% { opacity: 0; transform: scale(.2) rotate(0); } 30% { opacity: 1; transform: scale(1.25) rotate(200deg); }
-  70% { opacity: 1; transform: scale(1) rotate(360deg); } 100% { opacity: 0; transform: scale(2.2) rotate(420deg); }
-}
-
-.lasit {
-  position: fixed; top: 0; left: 50%; width: 60vmin; margin-left: -30vmin;
-  text-align: center; pointer-events: none; z-index: 9;
-  animation: putoa 1.8s ease-in forwards;
-}
-.lasit b { display: block; font-size: 22vmin; line-height: 24vmin; }
-.lasit em { display: block; font-style: normal; font-weight: bold; font-size: 6vmin; -webkit-text-stroke: 2px #000; text-shadow: 4px 4px 0 #000; }
-@keyframes putoa {
-  0% { transform: translateY(-40vmin); opacity: 1; } 40% { transform: translateY(32vh); } 50% { transform: translateY(28vh); }
-  60% { transform: translateY(32vh); } 85% { transform: translateY(32vh); opacity: 1; } 100% { transform: translateY(32vh); opacity: 0; }
-}
-
-/* Win95-virheikkunat */
-.ikkuna {
-  position: fixed; width: 320px;
-  pointer-events: none; z-index: 10;
-  background: #c0c0c0; color: #000;
-  font-family: Arial, Helvetica, sans-serif; font-size: 15px;
-  border: 2px solid; border-color: #fff #404040 #404040 #fff;
-  box-shadow: 4px 4px 0 rgba(0,0,0,.5);
-  animation: ikkuna 1.6s ease-out forwards;
-}
-.ikkuna .otsikko {
-  padding: 4px 8px;
-  background: linear-gradient(90deg, #000080, #1084d0);
-  color: #fff; font-weight: bold;
-}
-.ikkuna .otsikko b { float: right; padding: 0 5px; background: #c0c0c0; color: #000; border: 1px solid; border-color: #fff #404040 #404040 #fff; }
-.ikkuna .runko { padding: 14px 12px 10px; }
-.ikkuna .ok { display: block; width: 80px; margin: 12px auto 0; padding: 3px; text-align: center; border: 2px solid; border-color: #fff #404040 #404040 #fff; }
-@keyframes ikkuna {
-  0% { transform: scale(0); } 10% { transform: scale(1.1); } 15% { transform: scale(1) translateX(-6px); }
-  20% { transform: translateX(6px); } 25% { transform: none; } 90% { opacity: 1; } 100% { opacity: 0; }
-}
-
-/* Tärinät ja pyörähdykset */
-.nytky { animation: nytky .22s ease-out; }
-@keyframes nytky { 0%, 100% { transform: none; } 25% { transform: translate(-7px, 4px); } 50% { transform: translate(6px, -3px); } 75% { transform: translate(-3px, 1px); } }
-.tarise { animation: tarise .45s ease-out; }
-@keyframes tarise {
-  0%, 100% { transform: none; } 12% { transform: translate(-16px, 7px) rotate(-1.5deg); } 26% { transform: translate(14px, -6px) rotate(1.2deg); }
-  40% { transform: translate(-10px, 3px) rotate(-.6deg); } 56% { transform: translate(6px, -2px); } 75% { transform: translate(-3px, 1px); }
-}
-.zoom { animation: zoompunch .5s ease-out; }
-@keyframes zoompunch {
-  0% { transform: scale(1.15) rotate(-2.5deg); } 20% { transform: scale(1.1) rotate(2deg) translate(10px, -6px); }
-  40% { transform: scale(1.05) rotate(-1deg) translate(-8px, 5px); } 100% { transform: none; }
-}
-.kieppi { animation: kieppi .7s cubic-bezier(.5,0,.3,1); }
-@keyframes kieppi { from { transform: rotate(0) scale(1); } 50% { transform: rotate(180deg) scale(.7); } to { transform: rotate(360deg) scale(1); } }
-
-/* ============ YLÄPALKKI ============ */
+/* ================= TRANSPORT-PALKKI ================= */
 #top {
-  position: fixed; top: calc(12px + env(safe-area-inset-top, 0px));
-  left: 16px; right: 8px; height: var(--ylapalkki);
-  display: flex; z-index: 3;
+  position: fixed;
+  top: calc(var(--reuna) + env(safe-area-inset-top, 0px));
+  left: var(--reuna); right: var(--reuna);
+  height: var(--ylapalkki);
+  display: flex;
 }
 #stop {
-  position: relative; flex: 0 0 auto; width: 38%; min-width: 220px; margin-right: 16px;
-  padding: 0; border: 0; border-radius: 20px; overflow: hidden;
-  background: #ff1f3d;
-  box-shadow: inset 0 -10px 0 rgba(0,0,0,.45), 0 0 0 4px #fff, 0 0 34px rgba(255,31,61,.8);
-  color: #fff;
-  animation: stopheilu .9s ease-in-out infinite alternate;
+  --hehku: var(--stop);
+  flex: 0 0 auto;
+  width: 150px;
+  margin-right: var(--rako);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,77,85,.35);
+  border-radius: var(--pyoristys);
+  background: #170c0d;
+  color: var(--stop);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  transition: background-color .08s, transform .08s;
 }
-@keyframes stopheilu { from { transform: rotate(-2deg); } to { transform: rotate(2deg) scale(1.03); } }
-#stop::before {
-  content: ''; position: absolute; top: 0; bottom: 0; left: -68px; width: calc(100% + 136px);
-  background: repeating-linear-gradient(-45deg, #ff1f3d 0, #ff1f3d 24px, #ffe600 24px, #ffe600 48px);
-  opacity: .6; animation: marssi .5s linear infinite;
+#stop .ikoni {
+  width: 30px; height: 30px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background: var(--stop);
+  box-shadow: 0 0 10px rgba(255,77,85,.5);
 }
-@keyframes marssi { to { transform: translateX(67.88px); } }
-#stop span {
-  position: relative; display: inline-block;
-  font-size: 46px; font-weight: 900; font-style: italic;
-  -webkit-text-stroke: 2px #000; text-shadow: 4px 4px 0 #000;
-  animation: sateenkaari .4s steps(1) infinite;
-}
-#stop.isku { animation: none; transform: translateY(6px) scale(.94); }
+body.soi #stop { background: #22100f; border-color: var(--stop); }
+body.soi #stop::after { animation: vareily 2.2s linear infinite; }
+#stop.isku { background: var(--stop); color: #fff; transform: scale(.97); }
+#stop.isku .ikoni { background: #fff; }
 
-#now {
-  position: relative; flex: 1; min-width: 0;
-  padding: 12px 20px 0;
-  border-radius: 20px;
-  background: rgba(0,0,0,.55);
-  box-shadow: inset 0 0 0 3px #fff200;
-  overflow: hidden;
+/* Nopeusliuku */
+#speed {
+  --hehku: var(--korostus);
+  flex: 0 0 auto;
+  width: 250px;
+  margin-right: var(--rako);
+  padding: 12px 16px 10px;
+  border: 1px solid var(--viiva);
+  border-radius: var(--pyoristys);
+  background: var(--paneeli);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
-#nowText { display: block; margin-right: 180px; height: 54px; overflow: hidden; white-space: nowrap; font-size: 34px; line-height: 54px; font-weight: bold; color: rgba(255,255,255,.35); }
-#nowText .k { display: inline-block; animation: aalto .35s ease-in-out infinite alternate; }
-@keyframes aalto { from { transform: translateY(6px) rotate(-12deg); } to { transform: translateY(-8px) rotate(12deg); } }
-#score {
-  position: absolute; top: 10px; right: 18px;
-  font-size: 22px; font-weight: bold; white-space: nowrap;
-  color: #ffe600; -webkit-text-stroke: 1px #000; text-shadow: 2px 2px 0 #000;
+.speedTop { display: flex; justify-content: space-between; align-items: baseline; }
+#speedVal { font-size: 14px; font-weight: 700; color: var(--himmea); }
+#speed.muutettu #speedVal { color: var(--korostus); text-shadow: 0 0 10px rgba(22,166,224,.7); }
+#track {
+  position: relative;
+  height: 30px;
 }
-#score.pop { animation: scorepop .35s ease-out, sateenkaari .2s steps(1) 5; }
-@keyframes scorepop { 0% { transform: scale(2) rotate(-15deg); } 100% { transform: none; } }
-#vu {
-  position: absolute; left: 20px; right: 20px; bottom: 12px; height: 18px; border-radius: 4px; overflow: hidden;
-  background:
-    repeating-linear-gradient(90deg, rgba(0,0,0,0) 0, rgba(0,0,0,0) 11px, #000 11px, #000 15px),
-    linear-gradient(90deg, #ff0000, #ffea00, #00ff5e, #00c8ff, #b400ff, #ff00e6);
-}
-#vuCover { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: #1a1a1a; transform-origin: 100% 50%; }
-
-/* ============ RUUDUKKO ============ */
-#stage {
+#groove {
   position: absolute;
-  top: calc(var(--ylapalkki) + 14px + env(safe-area-inset-top, 0px));
-  bottom: 34px; left: 0;
-  right: calc(var(--palkki-leveys) + 16px);
-  z-index: 1;
+  left: 0; right: 0; top: 13px;
+  height: 4px;
+  border-radius: 2px;
+  background: #000;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.04);
 }
-#tilt { position: absolute; top: 0; right: 0; bottom: 0; left: 0; animation: keinu 6s ease-in-out infinite alternate; }
-@keyframes keinu { from { transform: rotate(-1.2deg); } to { transform: rotate(1.2deg); } }
-#board {
-  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-  padding: 24px var(--rako);
+.tick {
+  position: absolute;
+  top: 5px;
+  width: 1px; height: 20px;
+  margin-left: -.5px;
+  background: var(--hyvin-himmea);
+}
+.tick.keski { width: 2px; margin-left: -1px; top: 2px; height: 26px; background: var(--himmea); }
+#speedFill {
+  position: absolute;
+  top: 13px; height: 4px;
+  border-radius: 2px;
+  background: var(--korostus);
+  box-shadow: 0 0 10px var(--korostus);
+}
+#knob {
+  position: absolute;
+  top: 0; left: 0;
+  width: 22px; height: 30px;
+  margin-left: -11px;
+  border-radius: 4px;
+  background: linear-gradient(#3a3d44, #25272c);
+  box-shadow: 0 2px 6px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.12);
+}
+#knob::before {
+  content: '';
+  position: absolute;
+  left: 10px; top: 6px;
+  width: 2px; height: 18px;
+  border-radius: 1px;
+  background: var(--teksti);
+}
+#speed.muutettu #knob::before { background: var(--korostus); box-shadow: 0 0 6px var(--korostus); }
+#speed.muutettu #knob::after { animation: vareily 2.4s linear infinite; }
+.speedLabels { display: flex; justify-content: space-between; }
+.speedLabels .pieni { font-size: 9px; color: var(--hyvin-himmea); }
+
+#disp {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px 10px 16px;
+  margin-right: var(--rako);
+  border: 1px solid var(--viiva);
+  border-radius: var(--pyoristys);
+  background: var(--paneeli);
+  display: flex;
+  flex-direction: column;
+}
+#dispRivi { display: flex; align-items: center; height: 26px; }
+#slotChip {
+  flex: 0 0 auto;
+  min-width: 34px;
+  margin-right: 10px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: var(--pinta2);
+  color: var(--himmea);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+body.soi #slotChip::after { animation: vareily 1.9s linear infinite; }
+#nowName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--hyvin-himmea);
+}
+body.soi #nowName { color: var(--teksti); }
+#aika { flex: 0 0 auto; margin-left: 12px; font-size: 15px; font-weight: 600; color: var(--himmea); }
+body.soi #aika { color: var(--teksti); }
+
+#wave {
+  position: relative;
+  flex: 1;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 4px;
+}
+#wave i {
+  flex: 1;
+  margin: 0 1px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--hyvin-himmea);
+  transform: scaleY(.05);
+}
+body.soi #wave i { background: var(--vari, #767a84); }
+#playhead {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 100%;
+  background: rgba(255,255,255,.07);
+  border-right: 2px solid #fff;
+  box-shadow: 6px 0 12px -4px rgba(255,255,255,.6);
+  transform: translateX(-101%);
+  opacity: 0;
+}
+body.soi #playhead { opacity: 1; animation-name: toisto; animation-timing-function: linear; animation-fill-mode: forwards; }
+@keyframes toisto { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+#meter {
+  flex: 0 0 auto;
+  width: var(--sivu);
+  padding: 12px 0 10px;
+  border: 1px solid var(--viiva);
+  border-radius: var(--pyoristys);
+  background: var(--paneeli);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#meterBar {
+  --hehku: var(--vihrea);
+  flex: 1;
+  width: 14px;
+  border-radius: 2px;
+  background: linear-gradient(0deg, var(--vihrea) 0%, var(--vihrea) 65%, #f0c040 82%, var(--stop) 100%);
+}
+body.soi #meterBar::after { animation: vareily 1.6s linear infinite; }
+#meterCover {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 2px;
+  background: var(--pinta);
+  transform-origin: 50% 0;
+}
+#meter .pieni { margin-top: 6px; }
+
+/* ================= EFEKTIRIVI ================= */
+#fx {
+  position: fixed;
+  top: calc(var(--reuna) + var(--ylapalkki) + var(--rako) + env(safe-area-inset-top, 0px));
+  left: var(--reuna); right: var(--reuna);
+  height: var(--fxrivi);
+  display: flex;
+}
+.fx {
+  --v: #fff;
+  flex: 1;
+  min-width: 0;
+  margin-right: var(--rako);
+  padding: 8px 10px 6px;
+  border: 1px solid var(--viiva);
+  border-radius: var(--pyoristys);
+  background: var(--paneeli);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.fx.on { border-color: var(--v); box-shadow: 0 0 14px -4px var(--v), inset 0 0 18px -10px var(--v); }
+.fxTop { display: flex; justify-content: space-between; align-items: baseline; }
+.fxName {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: var(--v);
+  opacity: .5;
+  white-space: nowrap;
+}
+.fx.on .fxName {
+  opacity: 1;
+  text-shadow: 0 0 6px var(--v), 0 0 16px var(--v);
+  animation: vareily 1.8s linear infinite;
+}
+.fxVal { font-size: 10px; font-weight: 700; color: var(--hyvin-himmea); }
+.fx.on .fxVal { color: var(--teksti); }
+.fxDesc {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  color: var(--hyvin-himmea);
+}
+.fx.on .fxDesc { color: var(--himmea); }
+.trk { position: relative; height: 26px; }
+.grv {
+  position: absolute;
+  left: 0; right: 0; top: 11px;
+  height: 4px;
+  border-radius: 2px;
+  background: #000;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.04);
+}
+.fil {
+  position: absolute;
+  left: 0; top: 11px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--v);
+  box-shadow: 0 0 10px var(--v);
+  width: 0;
+}
+.knb {
+  position: absolute;
+  top: 0; left: 0;
+  width: 18px; height: 26px;
+  margin-left: -9px;
+  border-radius: 4px;
+  background: linear-gradient(#3a3d44, #25272c);
+  box-shadow: 0 2px 6px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.12);
+}
+.knb::before {
+  content: '';
+  position: absolute;
+  left: 8px; top: 5px;
+  width: 2px; height: 16px;
+  border-radius: 1px;
+  background: var(--teksti);
+}
+.fx.on .knb::before { background: var(--v); box-shadow: 0 0 6px var(--v); }
+
+#fxReset {
+  --hehku: #fff;
+  flex: 0 0 auto;
+  width: var(--sivu);
+  margin-right: 0;
+  border: 1px solid var(--viiva);
+  border-radius: var(--pyoristys);
+  background: var(--paneeli);
+  color: var(--hyvin-himmea);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  line-height: 1.3;
+}
+body.fxOn #fxReset { color: #fff; border-color: rgba(255,255,255,.6); }
+body.fxOn #fxReset::after { animation: vareily 2.2s linear infinite; }
+#fxReset.isku { background: #fff; color: #0a0a0a; }
+
+@media (orientation: portrait) {
+  :root { --fxrivi: 194px; --stopleveys: 150px; }
+  #fx { flex-wrap: wrap; align-content: space-between; }
+  .fx, #fxReset { flex: 0 0 calc(25% - 8px); height: 92px; margin-right: 0; }
+  #fx { justify-content: space-between; }
+}
+
+/* ================= ISO STOP =================
+   STOP on oma korkea palkkinsa vasemmassa yläkulmassa: yhtä korkea kuin
+   transport-palkki ja efektirivi yhteensä. */
+#stop {
+  position: fixed;
+  top: calc(var(--reuna) + env(safe-area-inset-top, 0px));
+  left: var(--reuna);
+  width: var(--stopleveys);
+  height: calc(var(--ylapalkki) + var(--rako) + var(--fxrivi));
+  margin-right: 0;
+  border-width: 2px;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: .2em;
+}
+#stop .ikoni {
+  width: 64px; height: 64px;
+  margin-bottom: 18px;
+  border-radius: 9px;
+  box-shadow: 0 0 22px rgba(255,77,85,.55);
+}
+#top, #fx { left: calc(var(--reuna) + var(--stopleveys) + var(--rako)); }
+
+/* ================= TIIVIS NÄYTTÖ ================= */
+#speed { padding: 8px 14px 6px; }
+#track { height: 26px; }
+#groove { top: 11px; }
+#speedFill { top: 11px; }
+.tick { top: 4px; height: 18px; }
+.tick.keski { top: 1px; height: 24px; }
+#knob { height: 26px; }
+#knob::before { top: 5px; height: 16px; }
+
+#disp { padding: 9px 14px 9px 14px; justify-content: space-between; }
+#dispRivi { height: 26px; }
+#nowName { font-size: 18px; }
+/* Aaltomuoto: ohut, peilattu viiva näytön alareunassa */
+#wave {
+  flex: 0 0 auto;
+  height: 18px;
+  margin-top: 0;
+  border-radius: 9px;
+  background: rgba(255,255,255,.025);
+}
+#wave i {
+  margin: 0 .5px;
+  border-radius: 2px;
+  opacity: .5;
+}
+body.soi #wave i { opacity: .9; }
+#playhead { background: rgba(255,255,255,.06); border-right-width: 2px; }
+#meter { padding: 8px 0 6px; }
+
+/* ================= PADIT ================= */
+#grid {
+  position: absolute;
+  top: calc(var(--reuna) + var(--ylapalkki) + var(--rako) + var(--fxrivi) + var(--rako) + env(safe-area-inset-top, 0px));
+  left: var(--reuna);
+  right: calc(var(--reuna) + var(--sivu) + var(--rako));
+  bottom: calc(var(--reuna) + env(safe-area-inset-bottom, 0px));
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--pad-leveys), 1fr));
-  grid-auto-rows: var(--pad-korkeus);
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   grid-gap: var(--rako);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+}
+@media (orientation: portrait) {
+  #grid { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); }
+  #speed { width: 200px; }
 }
 
 .pad {
-  position: relative; display: flex; align-items: center; justify-content: center;
-  padding: 10px 10px 22px; border-radius: 20px;
-  text-align: center; word-break: break-word; line-height: 1.12; cursor: pointer;
+  position: relative;
+  min-width: 0; min-height: 0;
+  border-radius: var(--pyoristys);
+  cursor: pointer;
+  transition: transform .08s;
 }
 .pad.taysi {
-  --h: 300;
-  --muoto: 20px;
-  background-color: hsl(var(--h), 95%, 58%);
-  border-radius: var(--muoto);
-  font-size: 22px; font-weight: bold;
-  box-shadow: inset 0 -10px 0 hsl(var(--h), 85%, 34%), 0 8px 0 rgba(0,0,0,.55), 0 0 0 3px #000;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
+  --c: #767a84;
+  --hehku: var(--c);
+  background: var(--pinta);
+  box-shadow: inset 0 0 0 1px var(--viiva);
 }
-.pad.w1 { animation-name: heilu1; animation-duration: 1.1s; }
-.pad.w2 { animation-name: heilu2; animation-duration: 1.7s; }
-.pad.w3 { animation-name: heilu3; animation-duration: .8s; }
-.pad.w4 { animation-name: heilu4; animation-duration: 2.3s; }
-.pad.w5 { animation-name: heilu5; animation-duration: 1.35s; }
-@keyframes heilu1 { from { transform: rotate(-4deg); } to { transform: rotate(4deg) translateY(-6px); } }
-@keyframes heilu2 { from { transform: rotate(3deg); } to { transform: rotate(-5deg) scale(1.05); } }
-@keyframes heilu3 { from { transform: translateX(-4px) rotate(-2deg); } to { transform: translateX(4px) rotate(6deg); } }
-@keyframes heilu4 { from { transform: rotate(-8deg); } to { transform: rotate(2deg) translateY(5px); } }
-@keyframes heilu5 { from { transform: scale(.94) rotate(1deg); } to { transform: scale(1.04) rotate(-3deg); } }
-
-.pad.k1 { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0, rgba(255,255,255,.25) 10px, rgba(255,255,255,0) 10px, rgba(255,255,255,0) 22px); }
-.pad.k2 { background-image: radial-gradient(rgba(255,255,255,.35) 22%, rgba(255,255,255,0) 26%); background-size: 18px 18px; }
-.pad.k3 { background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.15) 0, rgba(0,0,0,.15) 8px, rgba(0,0,0,0) 8px, rgba(0,0,0,0) 16px); }
-.pad.k4 { background-image: linear-gradient(45deg, rgba(0,0,0,.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%, rgba(0,0,0,.2) 75%), linear-gradient(45deg, rgba(0,0,0,.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%, rgba(0,0,0,.2) 75%); background-size: 24px 24px; background-position: 0 0, 12px 12px; }
-.pad.k5 { background-image: repeating-radial-gradient(circle at 80% 20%, rgba(255,255,255,.22) 0, rgba(255,255,255,.22) 6px, rgba(255,255,255,0) 6px, rgba(255,255,255,0) 14px); }
-
-.pad.taysi::after {
-  content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
-  border: 6px solid #fff; border-radius: inherit; opacity: 0; pointer-events: none;
+/* kolme ohutta raitaa padin yläreunassa */
+.strip {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 11px;
+  border-radius: var(--pyoristys) var(--pyoristys) 0 0;
+  background: repeating-linear-gradient(180deg, var(--c) 0, var(--c) 3px, rgba(0,0,0,0) 3px, rgba(0,0,0,0) 4px);
+  opacity: .85;
 }
-.pad.soi {
-  animation: hyytelo .55s ease-out;
-  background-color: #fff200;
-  box-shadow: 0 0 0 6px #fff, 0 0 50px hsl(var(--h), 100%, 60%);
-  z-index: 2;
+.fill {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  background: var(--c);
+  opacity: 0;
+  transition: opacity .2s;
 }
-@keyframes hyytelo {
-  0% { transform: scale(1.3, .7) rotate(-6deg); } 30% { transform: scale(.8, 1.2) rotate(5deg); }
-  50% { transform: scale(1.1, .92); } 70% { transform: scale(.97, 1.03); } 100% { transform: scale(.95); }
+/* hidas kiilto, joka liukuu soivan padin yli */
+.fill::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 55%;
+  background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.22), rgba(255,255,255,0));
+  transform: translateX(-120%);
 }
-.pad.soi::after, .pad.vilkku::after { animation: isku .6s ease-out; }
-@keyframes isku { 0% { opacity: 1; transform: scale(1) rotate(0); } 100% { opacity: 0; transform: scale(1.7) rotate(12deg); } }
-
-.nimi { display: block; position: relative; will-change: transform; }
-.flip { display: inline-block; }
-.flip.ylosalaisin { transform: rotate(180deg); }
-.flip.peili { transform: scaleX(-1); }
-.flip.vino { transform: rotate(-20deg); }
-.pad.soi .nimi { animation: pomppu .45s cubic-bezier(.2,1.8,.4,1); }
-@keyframes pomppu { 0% { transform: scale(1.9) rotate(-20deg); } 100% { transform: scale(1); } }
-
+.nimi {
+  position: absolute;
+  top: 35px; left: 12px; right: 12px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  word-break: break-word;
+  text-align: center;
+}
+.meta {
+  position: absolute;
+  left: 12px; right: 12px; top: 17px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.play {
+  display: none;
+  width: 0; height: 0;
+  margin-right: 6px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid currentColor;
+}
 .prog {
-  position: absolute; left: 14px; right: 14px; bottom: 18px; height: 7px; border-radius: 4px;
-  background: #000; opacity: 0; transform-origin: 0 50%; transform: scaleX(0);
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 4px;
+  border-radius: 0 0 var(--pyoristys) var(--pyoristys);
+  background: rgba(0,0,0,.55);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  opacity: 0;
 }
-.pad.soi .prog { opacity: .8; animation-name: etene; animation-timing-function: linear; animation-fill-mode: forwards; }
+
+.pad.soi { box-shadow: 0 0 0 2px rgba(255,255,255,.9); z-index: 2; }
+.pad.soi::after { animation: vareily 2s linear infinite; }
+.pad.soi .fill { opacity: 1; transition: opacity .03s; }
+.pad.soi .fill::after { animation: kiilto 2.6s ease-in-out infinite; }
+@keyframes kiilto { 0% { transform: translateX(-120%); } 60%, 100% { transform: translateX(260%); } }
+.pad.soi .nimi { color: #0a0a0a; }
+.pad.soi .meta .pieni { color: rgba(0,0,0,.6); }
+.pad.soi .play { display: inline-block; color: #0a0a0a; }
+.pad.soi .prog { opacity: 1; animation-name: etene; animation-timing-function: linear; animation-fill-mode: forwards; }
 @keyframes etene { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+body.soi .pad.taysi:not(.soi) .nimi { color: var(--himmea); }
 
-.pad.lataa { opacity: .3; }
+.pad.lataa .nimi { color: var(--hyvin-himmea); }
+
 .pad.tyhja {
-  background: rgba(0,0,0,.3);
-  border: 3px dashed rgba(255,255,255,.25);
-  color: rgba(255,255,255,.4);
-  font-size: 17px; font-weight: bold;
+  background: var(--paneeli);
+  box-shadow: inset 0 0 0 1px #1a1b1f;
+}
+.pad.tyhja .meta { top: 14px; bottom: auto; }
+.pad.tyhja .pieni { color: var(--hyvin-himmea); }
+.plus {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 22px; height: 22px;
+  margin: -11px 0 0 -11px;
+  opacity: .3;
+}
+.plus::before, .plus::after { content: ''; position: absolute; background: var(--himmea); border-radius: 1px; }
+.plus::before { left: 10px; top: 0; width: 2px; height: 22px; }
+.plus::after { top: 10px; left: 0; height: 2px; width: 22px; }
+
+/* Efektiruutu: nimi, liuku + määrä samalla rivillä, kuvaus kahdella rivillä */
+.fxName { font-size: 10.5px; letter-spacing: .01em; overflow: hidden; text-overflow: ellipsis; }
+.trkIn { position: absolute; top: 0; bottom: 0; left: 0; right: 28px; }
+.trk .fxVal { position: absolute; right: 0; top: 7px; width: 26px; text-align: right; font-size: 9px; }
+.fx .fxDesc {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 9.5px;
+  line-height: 1.15;
+}
+@media (orientation: portrait) {
+  .pill { font-size: 8.5px; letter-spacing: .02em; }
 }
 
-/* Muokkaustilassa kaaos lepää, jotta nappeihin osuu */
+/* Padi on jaettu kahteen isoon painikkeeseen: vasen SINGLE SHOT, oikea LOOP */
+.half {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  z-index: 2;
+  border-radius: var(--pyoristys);
+}
+.half.l { left: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.half.r { right: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; box-shadow: inset 1px 0 0 rgba(255,255,255,.07); }
+.half.painettu { background: rgba(255,255,255,.07); }
+.pill {
+  position: absolute;
+  left: 6px; right: 6px; bottom: 8px;
+  height: 42px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(0,0,0,.35);
+  box-shadow: inset 0 0 0 1px var(--viiva);
+  color: var(--himmea);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.half.l .pill { right: 3px; }
+.half.r .pill { left: 3px; }
+.pill b { font-size: 16px; line-height: 17px; color: var(--c); }
+.pad.soi .pill { background: rgba(0,0,0,.18); box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); color: rgba(0,0,0,.55); }
+.pad.soi .pill b { color: rgba(0,0,0,.55); }
+.pad.soi .half.aktiivinen .pill { background: #0a0a0a; color: var(--c); box-shadow: 0 0 14px rgba(0,0,0,.45); }
+.pad.soi .half.aktiivinen .pill b { color: var(--c); }
+.nimi, .meta, .fill, .strip, .prog { pointer-events: none; z-index: 3; }
+.fill { z-index: 1; }
+.tools { z-index: 4; }
+body.editing .pill { display: none; }
+
+/* ================= MUOKKAUSTILA ================= */
 .tools { display: none; }
-body.editing .pad.taysi { animation: none; transform: none; }
-body.editing #tilt { animation: none; }
-body.editing .tools { display: flex; position: absolute; left: 6px; right: 6px; bottom: 10px; justify-content: space-between; }
-.tool { width: 42px; height: 34px; border: 0; border-radius: 9px; background: rgba(0,0,0,.65); color: #fff; font-size: 16px; }
-.tool.poista { background: #b80028; }
+body.editing .pad.taysi { box-shadow: inset 0 0 0 1px var(--korostus); }
+body.editing .pad.taysi .mode { display: none; }
+
+/* SINGLE SHOT / LOOP -valitsin */
+.mode {
+  position: absolute;
+  left: 8px; right: 8px; bottom: 9px;
+  height: 30px;
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(0,0,0,.4);
+  box-shadow: inset 0 0 0 1px var(--viiva);
+  z-index: 3;
+}
+.mode button {
+  flex: 1;
+  min-width: 0;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--hyvin-himmea);
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+.mode button + button { box-shadow: inset 1px 0 0 var(--viiva); }
+.mode button.valittu {
+  background: var(--c);
+  color: #0a0a0a;
+  box-shadow: inset 0 0 12px rgba(255,255,255,.35);
+}
+.pad.soi .mode { background: rgba(0,0,0,.22); box-shadow: inset 0 0 0 1px rgba(0,0,0,.3); }
+.pad.soi .mode button { color: rgba(0,0,0,.55); }
+.pad.soi .mode button.valittu { background: #0a0a0a; color: var(--c); box-shadow: 0 0 10px rgba(0,0,0,.4); }
+/* luuppaava padi saa pienen ∞-merkin nimen viereen */
+.luuppi { display: none; margin-left: 4px; }
+.pad.loop .luuppi { display: inline; }
+body.editing .tools {
+  display: flex;
+  position: absolute;
+  left: 8px; right: 8px; bottom: 8px;
+  justify-content: space-between;
+}
+.tool {
+  width: 42px; height: 32px;
+  border: 1px solid var(--viiva);
+  border-radius: 6px;
+  background: var(--pinta2);
+  color: var(--teksti);
+  font-size: 14px;
+}
+.tool.poista { color: var(--stop); border-color: rgba(255,77,85,.5); }
 #fileInput { display: none; }
 
-#bar {
-  position: fixed;
-  top: calc(var(--ylapalkki) + 30px + env(safe-area-inset-top, 0px));
-  right: 8px; bottom: calc(68px + env(safe-area-inset-bottom, 0px));
-  width: var(--palkki-leveys); border-radius: 16px;
-  background: rgba(0,0,0,.45); box-shadow: inset 0 0 0 3px #fff200;
-  z-index: 3;
+/* ================= PANKIT JA EDIT ================= */
+#side {
+  position: absolute;
+  top: calc(var(--reuna) + var(--ylapalkki) + var(--rako) + var(--fxrivi) + var(--rako) + env(safe-area-inset-top, 0px));
+  right: var(--reuna);
+  bottom: calc(var(--reuna) + env(safe-area-inset-bottom, 0px));
+  width: var(--sivu);
+  display: flex;
+  flex-direction: column;
 }
-#bar.piilossa { display: none; }
-#thumb {
-  position: absolute; left: 7px; right: 7px; top: 0; min-height: 60px; border-radius: 11px;
-  background: linear-gradient(#ff0000, #ffea00, #00ff5e, #00c8ff, #b400ff);
+.pankki {
+  --hehku: var(--korostus);
+  flex: 1;
+  margin-bottom: var(--rako);
+  border: 1px solid var(--viiva);
+  border-radius: var(--pyoristys);
+  background: var(--paneeli);
+  color: var(--himmea);
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 700;
 }
+.pankki .maara { display: block; margin-top: 2px; font-size: 10px; font-weight: 600; color: var(--hyvin-himmea); }
+.pankki.valittu { background: var(--korostus); border-color: var(--korostus); color: #fff; text-shadow: 0 1px 3px rgba(0,40,70,.5); }
+.pankki.valittu .maara { color: rgba(255,255,255,.85); }
+/* juoksuradan raidat */
+.pankki.valittu::before, body.editing #editBtn::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 22%;
+  border-radius: 0 0 var(--pyoristys) var(--pyoristys);
+  background: repeating-linear-gradient(180deg, var(--raita) 0, var(--raita) 2px, rgba(255,255,255,0) 2px, rgba(255,255,255,0) 6px);
+  opacity: .9;
+  pointer-events: none;
+}
+.pankki.valittu::after { animation: vareily 2.6s linear infinite; }
+.pankki .piste {
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--vihrea);
+  box-shadow: 0 0 8px 1px var(--vihrea);
+  display: none;
+}
+.pankki.soi .piste { display: block; animation: vareily 1.3s linear infinite; }
 #editBtn {
-  position: fixed; right: 8px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  width: var(--palkki-leveys); height: 46px;
-  border: 0; border-radius: 14px;
-  background: #000; box-shadow: inset 0 0 0 3px #fff200;
-  color: #fff200; font-size: 18px; font-weight: bold;
-  z-index: 3;
+  --hehku: var(--korostus);
+  flex: 0 0 auto;
+  height: 52px;
+  border: 1px solid var(--viiva);
+  border-radius: var(--pyoristys);
+  background: var(--paneeli);
+  color: var(--himmea);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
 }
-body.editing #editBtn { background: #fff200; color: #000; font-size: 13px; }
+body.editing #editBtn { background: var(--korostus); border-color: var(--korostus); color: #fff; }
+body.editing #editBtn::after { animation: vareily 2.6s linear infinite; }
 
-body.kevyt #bg, body.kevyt #raysWrap, body.kevyt .sade, body.kevyt #dvd, body.kevyt #vhs, body.kevyt #scan { display: none; }
-body.kevyt .pad.taysi { animation-name: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hehku::after, .pad.soi::after, .pad.soi .fill::after, .pankki .piste { animation: none !important; opacity: .8; }
+}
+
+/* =====================================================================
+   PANIMOTEEMA: ruskea pullolasi, kermanvaaleat paperietiketit, musta muste,
+   humalankulta ja kirjoituskoneen henki. Kaikki teeman värit ovat tässä
+   lohkossa, joten teemaa on helppo muokata.
+   ===================================================================== */
+:root {
+  --pohja: #1a0f07;           /* pullolasin ruskea */
+  --paneeli: #efe4cc;         /* etikettipaperi */
+  --pinta: #f5ecd8;           /* vaalea paperi */
+  --pinta2: #e3d4b3;
+  --viiva: #1b140e;           /* muste */
+  --teksti: #1b140e;
+  --himmea: #6e5c45;
+  --hyvin-himmea: #a8966f;
+  --korostus: #d4a017;        /* humalankulta */
+  --stop: #b3261e;            /* punainen muste */
+  --vihrea: #5b8a2a;          /* humalanvihreä */
+  --kerma: #f5ecd8;
+  --otsikko: "Rockwell", "American Typewriter", Georgia, serif;
+  --kirjoituskone: "American Typewriter", "Courier New", Courier, serif;
+  --pyoristys: 4px;
+}
+html, body {
+  background: radial-gradient(ellipse at 50% 25%, #3b2412 0%, #22140a 45%, #120904 100%);
+  font-family: var(--kirjoituskone);
+}
+
+/* Reunoilta tummuva tausta */
+#bgVarjo {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(18,9,4,0) 45%, rgba(18,9,4,.75) 100%);
+}
+
+/* Etikettimäinen tuplareuna paneeleille */
+#speed, #disp, #meter, .fx, #fxReset, .pankki, #editBtn {
+  border: 2px solid var(--viiva);
+  box-shadow: inset 0 0 0 3px var(--paneeli), inset 0 0 0 4px rgba(27,20,14,.5), 0 3px 0 rgba(0,0,0,.35);
+}
+.pieni { font-family: var(--kirjoituskone); letter-spacing: .06em; }
+
+/* ---------- STOP: punainen muste, mustetahra kuvakkeena ---------- */
+#stop {
+  background: var(--pinta);
+  border: 3px solid var(--viiva);
+  color: var(--stop);
+  font-family: var(--otsikko);
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  box-shadow: inset 0 0 0 4px var(--pinta), inset 0 0 0 5px rgba(27,20,14,.5), 0 4px 0 rgba(0,0,0,.4);
+}
+#stop .ikoni {
+  width: 72px; height: 64px;
+  border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+  background: var(--stop);
+  box-shadow: 9px -5px 0 -6px var(--stop), -8px 7px 0 -5px var(--stop);
+}
+#stop::before {
+  content: '(when in doubt, hit it)';
+  position: absolute;
+  left: 0; right: 0; bottom: 12px;
+  font-family: var(--kirjoituskone);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .02em;
+  color: var(--himmea);
+  text-align: center;
+}
+body.soi #stop { background: var(--stop); color: var(--kerma); border-color: var(--viiva); }
+body.soi #stop .ikoni { background: var(--kerma); box-shadow: 9px -5px 0 -6px var(--kerma), -8px 7px 0 -5px var(--kerma); }
+body.soi #stop::before { color: rgba(245,236,216,.75); }
+#stop.isku { background: var(--viiva); color: var(--kerma); }
+
+/* ---------- Transport ---------- */
+#speedVal { color: var(--himmea); font-family: var(--kirjoituskone); }
+#speed.muutettu #speedVal { color: #8a5f00; text-shadow: none; font-weight: 800; }
+#groove { background: var(--viiva); box-shadow: none; }
+.tick { background: var(--hyvin-himmea); }
+.tick.keski { background: var(--viiva); }
+#speedFill { box-shadow: none; }
+#knob { background: linear-gradient(#3b2a1c, #1b140e); }
+#knob::before { background: var(--kerma); }
+.speedLabels .pieni { color: var(--himmea); }
+
+#nowName { font-family: var(--otsikko); font-weight: 800; color: var(--hyvin-himmea); }
+body.soi #nowName { color: var(--teksti); }
+#aika { color: var(--himmea); font-family: var(--kirjoituskone); }
+body.soi #aika { color: var(--teksti); }
+#slotChip { background: var(--pinta2); color: var(--himmea); border-radius: 3px; font-family: var(--kirjoituskone); }
+#wave { background: rgba(27,20,14,.06); }
+#wave i { background: var(--hyvin-himmea); opacity: .8; }
+body.soi #wave i { opacity: 1; }
+#playhead { background: rgba(27,20,14,.07); border-right-color: var(--viiva); box-shadow: none; }
+#meterBar { background: linear-gradient(0deg, var(--vihrea) 0%, var(--vihrea) 60%, var(--korostus) 80%, var(--stop) 100%); }
+#meterCover { background: var(--pinta2); }
+
+/* ---------- Efektit: aktiivinen efekti "leimataan" värillään ---------- */
+.fxName { font-family: var(--otsikko); font-weight: 900; font-size: 10px; letter-spacing: 0; padding: 1px 3px; margin-left: -4px; border-radius: 2px; opacity: .85; }
+.fx.on { border-color: var(--viiva); box-shadow: inset 0 0 0 3px var(--paneeli), inset 0 0 0 5px var(--v), 0 3px 0 rgba(0,0,0,.35); }
+.fx.on .fxName { background: var(--v); color: var(--kerma); text-shadow: none; opacity: 1; }
+.fxVal { color: var(--hyvin-himmea); font-family: var(--kirjoituskone); }
+.fx.on .fxVal { color: var(--teksti); font-weight: 800; }
+.fx .fxDesc, .fx.on .fxDesc { color: var(--himmea); font-family: var(--kirjoituskone); }
+.grv { background: var(--viiva); box-shadow: none; }
+.fil { box-shadow: none; }
+.knb { background: linear-gradient(#3b2a1c, #1b140e); }
+.knb::before { background: var(--kerma); }
+.fx.on .knb::before { background: var(--v); box-shadow: none; }
+#fxReset { color: var(--hyvin-himmea); font-family: var(--otsikko); }
+body.fxOn #fxReset { background: var(--korostus); color: var(--viiva); border-color: var(--viiva); }
+#fxReset.isku { background: var(--viiva); color: var(--kerma); }
+
+/* ---------- Padit: paperietiketit ---------- */
+.pad.taysi {
+  background: var(--pinta);
+  box-shadow: inset 0 0 0 2px var(--viiva), inset 0 0 0 5px var(--pinta), inset 0 0 0 6px rgba(27,20,14,.45), 0 4px 0 rgba(0,0,0,.4);
+}
+.strip { height: 8px; background: var(--c); opacity: 1; border-radius: var(--pyoristys) var(--pyoristys) 0 0; }
+.nimi { font-family: var(--otsikko); font-weight: 800; font-size: 17px; color: var(--teksti); }
+.meta .pieni { color: var(--himmea); }
+.pill {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--viiva);
+  color: var(--teksti);
+  font-family: var(--kirjoituskone);
+  border-radius: 3px;
+}
+.pill b { color: var(--c); }
+.half.r { box-shadow: inset 1px 0 0 rgba(27,20,14,.25); }
+.half.painettu { background: rgba(27,20,14,.08); }
+.pad.soi { box-shadow: 0 0 0 3px var(--viiva), 0 4px 0 rgba(0,0,0,.4); }
+.pad.soi .nimi, .pad.soi .play { color: var(--kerma); }
+.pad.soi .meta .pieni { color: rgba(245,236,216,.75); }
+.pad.soi .pill { background: rgba(0,0,0,.14); box-shadow: inset 0 0 0 1.5px rgba(245,236,216,.55); color: rgba(245,236,216,.85); }
+.pad.soi .pill b { color: var(--kerma); }
+.pad.soi .half.aktiivinen .pill { background: var(--kerma); color: var(--viiva); box-shadow: 0 2px 0 rgba(0,0,0,.3); }
+.pad.soi .half.aktiivinen .pill b { color: var(--c); }
+.pad.soi .fill::after { background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.14), rgba(255,255,255,0)); }
+body.soi .pad.taysi:not(.soi) .nimi { color: var(--himmea); }
+.pad.lataa .nimi { color: var(--hyvin-himmea); }
+body.editing .pad.taysi { box-shadow: inset 0 0 0 3px var(--korostus), 0 4px 0 rgba(0,0,0,.4); }
+.tool { background: var(--pinta2); border-color: var(--viiva); color: var(--teksti); }
+.tool.poista { color: var(--stop); border-color: var(--stop); }
+
+/* Tyhjät paikat: haalea katkoviiva lasin päällä */
+.pad.tyhja { background: rgba(245,236,216,.05); box-shadow: inset 0 0 0 1.5px rgba(245,236,216,.16); }
+.pad.tyhja .pieni { color: rgba(245,236,216,.35); }
+.plus::before, .plus::after { background: var(--kerma); }
+.pad.tyhja::after {
+  content: 'drop a sample here';
+  position: absolute;
+  left: 0; right: 0; bottom: 12px;
+  text-align: center;
+  font-family: var(--kirjoituskone);
+  font-size: 10px;
+  color: rgba(245,236,216,.28);
+}
+
+/* ---------- Pankit: valittu = musta etiketti, kultainen mustetahra ---------- */
+.pankki { font-family: var(--otsikko); font-weight: 900; font-size: 24px; color: var(--teksti); }
+.pankki .maara { color: var(--himmea); font-family: var(--kirjoituskone); }
+.kirjain { position: relative; z-index: 1; display: inline-block; }
+.pankki.valittu { background: var(--viiva); border-color: var(--viiva); color: var(--viiva); text-shadow: none;
+  box-shadow: inset 0 0 0 3px var(--viiva), inset 0 0 0 4px rgba(245,236,216,.4), 0 3px 0 rgba(0,0,0,.35); }
+.pankki.valittu .maara { color: rgba(245,236,216,.8); position: relative; z-index: 1; }
+.pankki.valittu::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 46px; height: 40px;
+  margin: -30px 0 0 -23px;
+  border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+  background: var(--korostus);
+  box-shadow: 8px -4px 0 -5px var(--korostus), -7px 6px 0 -4px var(--korostus);
+  opacity: 1;
+}
+.pankki .piste { background: var(--vihrea); box-shadow: 0 0 6px var(--vihrea); }
+#editBtn { font-family: var(--otsikko); color: var(--teksti); }
+body.editing #editBtn { background: var(--korostus); border-color: var(--viiva); color: var(--viiva); }
+body.editing #editBtn::before { display: none; }
+
+
+/* =====================================================================
+   SAPLUUNA- JA SPRAYFONTIT
+   Fontti: stencil.ttf GitHubissa. Sapluunan sillat tulevat fontista, joten
+   käytä aitoa sapluunafonttia (esim. Stardos Stencil tai Saira Stencil One).
+   Jos tiedostoa ei ole, käytetään iPadin raskasta kapeaa Futuraa.
+   Spraymaalin pilkutus ja kuluneet reunat tehdään CSS:llä.
+   ===================================================================== */
+@font-face {
+  font-family: 'Sapluuna';
+  src: url('stencil.ttf') format('truetype');
+  font-display: swap;
+}
+:root {
+  --sapluuna: 'Sapluuna', "Futura-CondensedExtraBold", "AvenirNextCondensed-Heavy", "Arial Narrow", Impact, sans-serif;
+  --otsikko: var(--sapluuna);
+  --kirjoituskone: var(--sapluuna);
+}
+body { font-family: var(--sapluuna); }
+
+/* Spraymaalattu teksti: epätasainen pinta. Sapluunan sillat tulevat fontista (stencil.ttf). */
+.spray {
+  text-transform: uppercase;
+  line-height: 1.15;
+  background-image:
+    radial-gradient(circle at 30% 40%, rgba(0,0,0,.28) 0, rgba(0,0,0,.28) .7px, rgba(0,0,0,0) 1.3px),
+    radial-gradient(circle at 70% 65%, rgba(255,255,255,.22) 0, rgba(255,255,255,.22) .6px, rgba(255,255,255,0) 1.2px),
+    linear-gradient(currentColor, currentColor);
+  background-size: 5px 5px, 7px 7px, 100% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Isommat koot */
+.pieni { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.nimi { font-size: 21px; font-weight: 900; letter-spacing: .04em; top: 32px; }
+.pill { font-size: 12px; letter-spacing: .06em; height: 38px; bottom: 7px; }
+.pill b { font-size: 15px; }
+#stop { font-size: 42px; letter-spacing: .1em; }
+#stop .stopText { display: block; line-height: 1.15; }
+#stop { padding-bottom: 28px; }
+#stop .ikoni { width: 60px; height: 54px; margin-bottom: 10px; }
+.pill { letter-spacing: .02em; }
+#stop::before { content: '(WHEN IN DOUBT, HIT IT)'; font-size: 12px; letter-spacing: .06em; }
+#nowName { font-size: 25px; line-height: 1.15; letter-spacing: .03em; }
+#aika { font-size: 18px; }
+#slotChip { font-size: 14px; }
+#speedVal { font-size: 16px; text-transform: uppercase; }
+.speedLabels .pieni { font-size: 10px; }
+.fxName { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+.fx .fxDesc, .fx.on .fxDesc { font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; }
+.fxVal { font-size: 10px; }
+#fxReset { font-size: 14px; letter-spacing: .06em; }
+.pankki { font-size: 32px; }
+.pankki .maara { font-size: 11px; }
+#editBtn { font-size: 15px; letter-spacing: .08em; }
+.pad.tyhja::after { content: 'DROP A SAMPLE HERE'; font-size: 11px; letter-spacing: .06em; }
+@media (orientation: portrait) {
+  .pill { font-size: 11px; letter-spacing: .02em; }
+  .nimi { font-size: 19px; }
+}
+
+/* Kuluneet, rosoiset reunat kuin vanhassa painomusteessa:
+   kolme eri kokoista reikäkuviota leikkaavat kirjaimiin pieniä
+   epäsäännöllisiä koloja. Koot ovat em-yksiköissä, joten kuvio
+   skaalautuu tekstin koon mukana. Voimakkuutta voi säätää reikien
+   säteistä (esim. .04em -> .06em = rosoisempi). */
+.spray {
+  -webkit-mask-image:
+    radial-gradient(circle at 30% 35%, rgba(0,0,0,0) 0, rgba(0,0,0,0) .03em, #000 .05em),
+    radial-gradient(circle at 70% 60%, rgba(0,0,0,0) 0, rgba(0,0,0,0) .035em, #000 .055em),
+    radial-gradient(circle at 45% 85%, rgba(0,0,0,0) 0, rgba(0,0,0,0) .025em, #000 .045em);
+  -webkit-mask-size: .37em .43em, .53em .47em, .29em .61em;
+  -webkit-mask-composite: source-in, source-in;
+  mask-image:
+    radial-gradient(circle at 30% 35%, rgba(0,0,0,0) 0, rgba(0,0,0,0) .03em, #000 .05em),
+    radial-gradient(circle at 70% 60%, rgba(0,0,0,0) 0, rgba(0,0,0,0) .035em, #000 .055em),
+    radial-gradient(circle at 45% 85%, rgba(0,0,0,0) 0, rgba(0,0,0,0) .025em, #000 .045em);
+  mask-size: .37em .43em, .53em .47em, .29em .61em;
+  mask-composite: intersect;
+}
+
+/* ---------- STOP-napin kuva ----------
+   Kuva on HTML:ssä kohdassa "STOP-NAPIN KUVA". Kun kuva löytyy,
+   mustetahra piilotetaan ja kuva täyttää napin yläosan. STOP-teksti
+   pysyy napin alalaidassa. */
+#stop { justify-content: center; padding: 14px 12px 30px; overflow: hidden; }
+/* Kuva täyttää koko napin. Näkyvyys säädetään opacity-arvosta (0.7 = 70 %). */
+#stopKuva {
+  display: none;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: .7;
+  pointer-events: none;
+  z-index: 0;
+}
+#stop.kuvallinen #stopKuva { display: block; }
+/* STOP-teksti kuvan päällä, varjo pitää sen luettavana */
+#stop .stopText { position: relative; z-index: 1; }
+#stop.kuvallinen .stopText {
+  -webkit-filter: drop-shadow(0 2px 3px rgba(0,0,0,.75)) drop-shadow(0 0 8px rgba(0,0,0,.45));
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.75)) drop-shadow(0 0 8px rgba(0,0,0,.45));
+}
+#stop::before { z-index: 1; }
+#stop.kuvallinen::before { color: var(--kerma); text-shadow: 0 1px 3px rgba(0,0,0,.9); }
+
+/* ---------- Efektien välähdykset ----------
+   Kun efektiä säädetään, ruutu välähtää efektin värillä ja
+   kahvasta lähtee pieni kipinä. Päällä olevan efektin nimen
+   yli pyyhkäisee välillä kiilto. */
+.fx { position: relative; }
+.fx::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  border-radius: inherit;
+  background: var(--v);
+  opacity: 0;
+  pointer-events: none;
+}
+.fx.valahdys::after { animation: fxValahdys .35s ease-out; }
+@keyframes fxValahdys { 0% { opacity: .4; } 100% { opacity: 0; } }
+.knb::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 34px; height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(255,255,255,.95) 12%, var(--v) 28%, rgba(255,255,255,0) 62%);
+  opacity: 0;
+  transform: scale(0);
+  pointer-events: none;
+}
+.fx.valahdys .knb::after { animation: kipina .4s ease-out; }
+@keyframes kipina {
+  0% { opacity: 1; transform: scale(.3); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+.fxName { position: relative; overflow: hidden; }
+.fxName::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 60%;
+  background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.75), rgba(255,255,255,0));
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+.fx.on .fxName::after { animation: nimiKiilto 3.4s ease-in-out infinite; }
+@keyframes nimiKiilto {
+  0%, 72% { transform: translateX(-130%); }
+  100% { transform: translateX(260%); }
+}
+
+/* ---------- Hehkuva punainen STOP-teksti ----------
+   Pikkuteksti on poistettu. STOP-teksti on aina punainen, ja sen takana
+   on erillinen hehkukerros (.stopHehku), joka väreilee koko ajan. */
+#stop::before { content: none; }
+#stop { padding: 14px 12px; }
+.stopWrap { position: relative; z-index: 1; display: block; }
+#stop .stopText, body.soi #stop .stopText, #stop.isku .stopText {
+  display: block;
+  color: #ff2d2d;
+  font-size: 46px;
+  letter-spacing: .1em;
+  -webkit-filter: drop-shadow(0 2px 2px rgba(0,0,0,.8));
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.8));
+}
+.stopHehku {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  text-transform: uppercase;
+  font-size: 46px;
+  line-height: 1.15;
+  letter-spacing: .1em;
+  color: #ff2d2d;
+  text-shadow: 0 0 6px #ff2d2d, 0 0 16px #ff2d2d, 0 0 32px rgba(255,45,45,.8);
+  opacity: .6;
+  animation: vareily 2.4s linear infinite;
+  pointer-events: none;
+}
+/* kun jokin soi, hehku voimistuu ja väreilee nopeammin */
+body.soi .stopHehku { animation-duration: 1.2s; text-shadow: 0 0 8px #ff5a5a, 0 0 22px #ff2d2d, 0 0 44px #ff2d2d; }
+@media (prefers-reduced-motion: reduce) { .stopHehku { animation: none; } }
+
+/* =====================================================================
+   STOP-NAPIN KAKSI TILAA
+   1) Odottaa (mikään ei soi): ei tekstiä, nappi ja kuva hengittävät
+      hitaasti kultaisena hehkuna.
+   2) Hälytys (sample soi): punainen nappi, valkoinen STOP, nopeasti
+      sykkivä punainen hehku.
+   ===================================================================== */
+#stop { --hehku: var(--korostus); }
+body.soi #stop { --hehku: #ff2020; }
+
+/* --- 1) Odottaa --- */
+.stopWrap { display: none; }
+#stop::after {
+  box-shadow: 0 0 26px 7px var(--hehku), 0 0 6px 2px var(--hehku);
+  animation: odotus 2.8s ease-in-out infinite alternate;
+}
+@keyframes odotus { from { opacity: .12; } to { opacity: .95; } }
+#stopKuva { animation: kuvaHengitys 2.8s ease-in-out infinite alternate; }
+@keyframes kuvaHengitys {
+  from { opacity: .5; transform: scale(1); }
+  to   { opacity: .95; transform: scale(1.04); }
+}
+
+/* --- 2) Hälytys --- */
+body.soi #stop { background: #c40f0f; border-color: #ff4a4a; }
+body.soi #stopKuva { animation: none; opacity: .25; transform: none; }
+body.soi #stop::after {
+  box-shadow: 0 0 34px 10px #ff2020, 0 0 8px 3px #ff7070;
+  animation: halytys .45s ease-in-out infinite alternate;
+}
+@keyframes halytys { from { opacity: .3; } to { opacity: 1; } }
+/* vilkkuva valo napin sisällä */
+body.soi #stop::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 1;
+  background: radial-gradient(circle at center, rgba(255,150,150,.6) 0%, rgba(255,0,0,0) 70%);
+  animation: halytys .45s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+body.soi .stopWrap { display: block; z-index: 2; animation: stopEsiin .25s cubic-bezier(.2,1.6,.4,1); }
+@keyframes stopEsiin { from { transform: scale(1.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+body.soi #stop .stopWrap .stopText { color: #fff; }
+body.soi .stopHehku {
+  color: #ff2020;
+  text-shadow: 0 0 8px #ff2020, 0 0 20px #ff2020, 0 0 40px #ff0000;
+  animation: halytys .45s ease-in-out infinite alternate;
+}
+#stop.isku { background: var(--viiva); }
+
+@media (prefers-reduced-motion: reduce) {
+  #stop::after, #stopKuva, body.soi #stop::before, body.soi .stopWrap, body.soi .stopHehku { animation: none; }
+}
 </style>
 </head>
 <body>
-<div id="check"></div>
-<div id="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
-<div id="raysWrap"><div id="rays"></div></div>
+<div id="bgVarjo"></div>
 <div id="top">
-  <button id="stop" type="button"><span id="stopText">STOP</span></button>
-  <div id="now"><span id="nowText">Hiljaista??</span><div id="score">PISTEET 0</div><div id="vu"><div id="vuCover"></div></div></div>
+  <button id="stop" class="hehku" type="button">
+    <!-- =========================================================
+         STOP-NAPIN KUVA
+         1. Lataa kuva GitHubiin samaan paikkaan kuin index.html
+         2. Kirjoita kuvan tiedostonimi alle kohtaan src="..."
+            (oletuksena stop.png, esim. stop.jpg käy myös)
+         Kuva täyttää koko napin 70 % näkyvyydellä ja STOP-teksti on
+         sen päällä. Paras koko: neliö, 256 x 256 px.
+         Jos kuvaa ei löydy, napissa on pelkkä STOP-teksti.
+         ========================================================= -->
+    <img id="stopKuva" src="stop.png" alt=""
+         onload="document.getElementById('stop').classList.add('kuvallinen')"
+         onerror="this.style.display='none'">
+    <span class="stopWrap"><span class="stopHehku">STOP</span><span class="stopText spray">STOP</span></span>
+  </button>
+  <div id="speed">
+    <div class="speedTop"><span class="pieni">SPEED</span><span id="speedVal" class="luvut">NORMAL</span></div>
+    <div id="track">
+      <div id="groove"></div>
+      <span class="tick" style="left:0"></span>
+      <span class="tick" style="left:25%"></span>
+      <span class="tick keski" style="left:50%"></span>
+      <span class="tick" style="left:75%"></span>
+      <span class="tick" style="left:100%"></span>
+      <div id="speedFill"></div>
+      <div id="knob" class="hehku"></div>
+    </div>
+    <div class="speedLabels"><span class="pieni">−50%</span><span class="pieni">NORMAL</span><span class="pieni">+50%</span></div>
+  </div>
+  <div id="disp">
+    <div id="dispRivi">
+      <span id="slotChip" class="hehku">—</span>
+      <span id="nowName" class="spray">Nothing playing. Yet.</span>
+      <span id="aika" class="luvut">0:00.0</span>
+    </div>
+    <div id="wave"><div id="playhead"></div></div>
+  </div>
+  <div id="meter"><div id="meterBar" class="hehku"><div id="meterCover"></div></div><span class="pieni">OUT</span></div>
 </div>
-<div id="stage"><div id="tilt"><div id="board"></div></div></div>
-<div id="bar"><div id="thumb"></div></div>
-<button id="editBtn" type="button">✎</button>
-<div id="ticker"><span>★ 🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑🍑 ★</span></div>
+<div id="fx"></div>
+<div id="grid"></div>
+<div id="side"></div>
 <input id="fileInput" type="file" accept="audio/mpeg,.mp3,audio/*" multiple>
-<div id="dvd">SOUNDBOARD 3000</div>
-<div id="illu"><span>👁️</span></div>
-<div id="flash"></div>
-<div id="splash"></div>
-<div id="combo"></div>
-<div id="vhs"></div>
-<div id="scan"></div>
 
 <script>
 (function () {
   'use strict';
 
-  var PAIKKOJA = 100;
-  // Jos iPad sulaa: vaihda true. Tausta, sade, DVD-logo, juovat ja painikkeiden heilunta jäävät pois.
-  var KEVYT = false;
-  if (KEVYT) document.body.classList.add('kevyt');
-
-  var EMOJIT = ['🍑','💯','🍆','😂','🎯'];
-  var MEMET = ['MEININKIÄ','VITTU'];
-  var POPUPIT = [
-    'Paras keikka evö', 'Riku on ihana', 'Kullinlutkuttajat'
-  ];
-  var FONTIT = [
-    ['"Comic Sans MS", "Chalkboard SE", cursive', 22], ['Papyrus, fantasy', 22], ['Zapfino, cursive', 13],
-    ['Chalkduster, cursive', 20], ['"Marker Felt", cursive', 24], ['Noteworthy, cursive', 22],
-    ['"Snell Roundhand", cursive', 26], ['"American Typewriter", serif', 21], ['Copperplate, serif', 21],
-    ['"Futura-CondensedExtraBold", Impact, sans-serif', 28], ['"Courier New", monospace', 21],
-    ['"Party LET", cursive', 30], ['"Bradley Hand", cursive', 24], ['Didot, serif', 24]
-  ];
-  var MUODOT = ['20px', '34px 10px 34px 10px', '10px 34px 10px 34px', '50%', '14px 14px 40px 40px', '40px 40px 14px 14px', '50% 50% 20px 20px / 30px 30px 20px 20px', '0'];
-  var STOPIT = ['STOP', 'SEIS', 'STOPPPP'];
-  var REKT = ['HILJAISUUS'];
-  var OUDOT = ['NaN', '∞', 'LOL', '404', 'π', '-0', 'BANAANI', '??', 'OVER 9000', '¯\\_(ツ)_/¯', 'ANKKA'];
-
-  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
-  function rnd(a, b) { return a + Math.random() * (b - a); }
+  var PANKIT = ['A', 'B', 'C', 'D', 'E'];
+  var PER_PANKKI = 20;
+  var PAIKKOJA = PANKIT.length * PER_PANKKI;
+  var AALTOPALKIT = 96;
+  // Padien värit: lonkeronsininen ja hedelmäiset makuvärit (greippi, ananas, appelsiini, vadelma, karpalo, lime, persikka, minttu, mustikka)
+  var VARIT = ['#c8961e', '#b3261e', '#3f6e2a', '#1f4e79', '#7a3e1d', '#d06a22', '#5a2a5e', '#2e2a26', '#8a7a1c', '#2f6f6a'];
+  // Nopeusliuku: suurin muutos kumpaankin suuntaan (0.5 = ±50 %)
+  var NOPEUS_MAX = 0.5;
+  // Alle tämän muutoksen liuku napsahtaa keskelle (normaali nopeus)
+  var NOPEUS_NAPSAHDUS = 0.03;
 
   /* ---------- Ääni: yksi sample kerrallaan ---------- */
   var AC = window.AudioContext || window.webkitAudioContext;
@@ -534,12 +1255,204 @@ body.kevyt .pad.taysi { animation-name: none; }
   var master = ctx.createGain();
   var analyser = ctx.createAnalyser();
   analyser.fftSize = 512;
-  master.connect(analyser);
+  /* Tasonhallinta, kolme vaihetta:
+     1) jokainen sample tasataan latautuessaan samaan keskivoimakkuuteen (katso tasoita())
+     2) kompressori tasaa voimakkuuseroja samplen sisällä ja efektien jälkeen
+     3) limitteri varmistaa, ettei mikään ylitä kattoa */
+  var comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -26;
+  comp.knee.value = 12;
+  comp.ratio.value = 4;
+  comp.attack.value = 0.005;
+  comp.release.value = 0.2;
+  var makeup = ctx.createGain();
+  makeup.gain.value = 1.8;          // kompressorin jälkeinen tason nosto
+  var limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.value = -6;
+  limiter.knee.value = 0;
+  limiter.ratio.value = 20;
+  limiter.attack.value = 0.002;
+  limiter.release.value = 0.12;
+  master.connect(comp);
+  comp.connect(makeup);
+  makeup.connect(limiter);
+  limiter.connect(analyser);
   analyser.connect(ctx.destination);
   var wave = new Uint8Array(analyser.fftSize);
 
+  /* ---------- EFEKTIT ----------
+     Jokainen efekti: sisään -> kuiva (alkuperäinen) + märkä (efektoitu) -> ulos.
+     Kun efekti on nollassa, sen märkä haara irrotetaan, jotta iPad ei laske turhaan. */
+  function sp(param, v) { param.setTargetAtTime(v, ctx.currentTime, 0.02); }
+  function lfo(freq, type) {
+    var o = ctx.createOscillator();
+    o.type = type || 'sine';
+    o.frequency.value = freq;
+    o.start(0);
+    return o;
+  }
+  function modul() {
+    var m = {
+      input: ctx.createGain(), output: ctx.createGain(),
+      dry: ctx.createGain(), send: ctx.createGain(), wet: ctx.createGain(),
+      entry: ctx.createGain(), on: false
+    };
+    m.input.connect(m.dry);
+    m.dry.connect(m.output);
+    m.input.connect(m.send);
+    m.wet.gain.value = 0;
+    m.wet.connect(m.output);
+    return m;
+  }
+  function kytke(m, on) {
+    if (on && !m.on) { m.send.connect(m.entry); m.on = true; }
+    else if (!on && m.on) { m.send.disconnect(); m.on = false; }
+  }
+
+  // MEGAPHONE: kaistanpäästösuodin + särö
+  function megaphone() {
+    var m = modul();
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 1700; bp.Q.value = 0.9;
+    var pre = ctx.createGain();
+    var sh = ctx.createWaveShaper();
+    var n = 1024, curve = new Float32Array(n), k = 25;
+    for (var i = 0; i < n; i++) { var x = i * 2 / n - 1; curve[i] = (1 + k) * x / (1 + k * Math.abs(x)); }
+    sh.curve = curve;
+    var post = ctx.createGain(); post.gain.value = 0.55;
+    m.entry.connect(bp); bp.connect(pre); pre.connect(sh); sh.connect(post); post.connect(m.wet);
+    m.set = function (a) {
+      sp(pre.gain, 1 + a * 12);
+      sp(m.dry.gain, 1 - a);
+      sp(m.wet.gain, a);
+    };
+    return m;
+  }
+
+  // ROBOT: rengasmodulaatio (ääni kerrotaan matalalla siniaallolla)
+  function robot() {
+    var m = modul();
+    var ring = ctx.createGain(); ring.gain.value = 0;
+    var o = lfo(55);
+    o.connect(ring.gain);
+    m.entry.connect(ring); ring.connect(m.wet);
+    m.set = function (a) {
+      sp(o.frequency, 40 + a * 40);
+      sp(m.dry.gain, 1 - a);
+      sp(m.wet.gain, a * 1.3);
+    };
+    return m;
+  }
+
+  // WOBBLE: vibrato, sävelkorkeus huojuu
+  function wobble() {
+    var m = modul();
+    var d = ctx.createDelay(0.1); d.delayTime.value = 0.012;
+    var o = lfo(5.5), g = ctx.createGain(); g.gain.value = 0;
+    o.connect(g); g.connect(d.delayTime);
+    m.entry.connect(d); d.connect(m.wet);
+    m.set = function (a) {
+      sp(g.gain, a * 0.0045);
+      sp(m.dry.gain, 1 - a * 0.9);
+      sp(m.wet.gain, a);
+    };
+    return m;
+  }
+
+  // CHORUS: kaksi hitaasti huojuvaa kopiota alkuperäisen päälle
+  function chorus() {
+    var m = modul();
+    var d1 = ctx.createDelay(0.1), d2 = ctx.createDelay(0.1);
+    d1.delayTime.value = 0.02; d2.delayTime.value = 0.027;
+    var o1 = lfo(1.1), g1 = ctx.createGain(); g1.gain.value = 0.003;
+    var o2 = lfo(0.7), g2 = ctx.createGain(); g2.gain.value = 0.004;
+    o1.connect(g1); g1.connect(d1.delayTime);
+    o2.connect(g2); g2.connect(d2.delayTime);
+    m.entry.connect(d1); m.entry.connect(d2);
+    d1.connect(m.wet); d2.connect(m.wet);
+    m.set = function (a) {
+      sp(m.dry.gain, 1 - a * 0.35);
+      sp(m.wet.gain, a * 0.7);
+    };
+    return m;
+  }
+
+  // FLANGER: erittäin lyhyt huojuva viive takaisinkytkennällä
+  function flanger() {
+    var m = modul();
+    var d = ctx.createDelay(0.05); d.delayTime.value = 0.003;
+    var fb = ctx.createGain(); fb.gain.value = 0.5;
+    var o = lfo(0.25), g = ctx.createGain(); g.gain.value = 0.002;
+    o.connect(g); g.connect(d.delayTime);
+    m.entry.connect(d); d.connect(fb); fb.connect(d); d.connect(m.wet);
+    m.set = function (a) {
+      sp(fb.gain, 0.3 + a * 0.55);
+      sp(g.gain, 0.0015 + a * 0.0015);
+      sp(m.dry.gain, 1);
+      sp(m.wet.gain, a * 0.9);
+    };
+    return m;
+  }
+
+  // ECHO: toistuva kaiku, joka tummuu joka kierroksella
+  function echo() {
+    var m = modul();
+    var d = ctx.createDelay(1); d.delayTime.value = 0.28;
+    var fb = ctx.createGain();
+    var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3000;
+    m.entry.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); d.connect(m.wet);
+    m.set = function (a) {
+      sp(fb.gain, 0.25 + a * 0.45);
+      sp(m.dry.gain, 1);
+      sp(m.wet.gain, a * 0.75);
+    };
+    return m;
+  }
+
+  // REVERB: iso sali, kaiku lasketaan itse tehdystä kohinasta
+  function reverb() {
+    var m = modul();
+    var conv = ctx.createConvolver();
+    var len = Math.floor(ctx.sampleRate * 2.4);
+    var ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var data = ir.getChannelData(ch);
+      for (var i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    }
+    conv.buffer = ir;
+    m.entry.connect(conv); conv.connect(m.wet);
+    m.set = function (a) {
+      sp(m.dry.gain, 1 - a * 0.45);
+      sp(m.wet.gain, a);
+    };
+    return m;
+  }
+
+  // Efektien nimet, kuvaukset ja värit. Järjestys = järjestys ruudulla ja äänireitissä.
+  var FX = [
+    { name: 'MEGAPHONE', desc: 'Crunchy loudspeaker', color: '#c4501c', make: megaphone },
+    { name: 'ROBOT',     desc: 'Metallic robot voice', color: '#1f6f8b', make: robot },
+    { name: 'WOBBLE',    desc: 'Seasick wobbly pitch', color: '#4f7a1e', make: wobble },
+    { name: 'CHORUS',    desc: 'Shimmery double voice', color: '#2d4f9e', make: chorus },
+    { name: 'FLANGER',   desc: 'Jet plane whoosh', color: '#a3246b', make: flanger },
+    { name: 'ECHO',      desc: 'Shouting in a canyon', color: '#b07d0b', make: echo },
+    { name: 'REVERB',    desc: 'Giant cathedral hall', color: '#6b3fa0', make: reverb }
+  ];
+  var fxIn = ctx.createGain();
+  var edellinen = fxIn;
+  FX.forEach(function (f) {
+    f.mod = f.make();
+    f.mod.set(0);
+    edellinen.connect(f.mod.input);
+    edellinen = f.mod.output;
+    f.amt = 0;
+  });
+  edellinen.connect(master);
+
   var buffers = {};
-  var current = null;
+  var peaksCache = {};
+  var current = null;   // { src, gain, id, dur, pos, lastT, rate }
+  var rate = 1;
 
   function unlock() {
     if (ctx.state === 'running') return;
@@ -557,6 +1470,41 @@ body.kevyt .pad.taysi { animation-name: none; }
     });
   }
 
+  /* Samplen tasaus: mitataan keskivoimakkuus 50 ms paloissa, hiljaiset kohdat ohitetaan,
+     ja lasketaan kerroin, jolla sample nostetaan tai lasketaan tavoitetasolle. */
+  var TAVOITE = 0.1;          // tavoitevoimakkuus (RMS), noin -20 dBFS
+  var gains = {};
+  function tasoita(id, buf) {
+    var chs = Math.min(2, buf.numberOfChannels);
+    var block = Math.max(1, Math.floor(buf.sampleRate * 0.05));
+    var sum = 0, count = 0, peak = 0.0001;
+    for (var c = 0; c < chs; c++) {
+      var d = buf.getChannelData(c);
+      for (var b = 0; b < d.length; b += block) {
+        var ms = 0, n = 0, end = Math.min(d.length, b + block);
+        for (var i = b; i < end; i += 4) {
+          var v = d[i];
+          ms += v * v; n++;
+          if (v > peak) peak = v; else if (-v > peak) peak = -v;
+        }
+        ms = n ? ms / n : 0;
+        if (ms > 0.00001) { sum += ms; count++; }   // alle -50 dB = hiljaisuutta, ei lasketa
+      }
+    }
+    var rms = count ? Math.sqrt(sum / count) : 0;
+    var g = rms > 0 ? TAVOITE / rms : 1;
+    g = Math.min(g, 2 / peak);              // huiput korkeintaan +6 dB yli, limitteri hoitaa loput
+    g = Math.max(0.1, Math.min(10, g));
+    gains[id] = g;
+  }
+
+  // missä kohtaa samplea ollaan (sekunteina samplen omassa ajassa)
+  function position() {
+    if (!current) return 0;
+    var raw = current.pos + (ctx.currentTime - current.lastT) * current.rate;
+    return current.loop ? raw % current.dur : Math.min(current.dur, raw);
+  }
+
   function stopCurrent() {
     if (!current) return;
     var c = current;
@@ -565,48 +1513,96 @@ body.kevyt .pad.taysi { animation-name: none; }
     var t = ctx.currentTime;
     try {
       c.gain.gain.cancelScheduledValues(t);
-      c.gain.gain.setValueAtTime(1, t);
+      c.gain.gain.setValueAtTime(c.level, t);
       c.gain.gain.linearRampToValueAtTime(0, t + 0.015);
       c.src.stop(t + 0.02);
     } catch (e) {}
     lightOff(c.id);
-    showNow(null);
   }
 
-  function play(p, x, y) {
+  function play(p, loop) {
     var b = buffers[p.id];
     if (!b) return;
     stopCurrent();
     var src = ctx.createBufferSource();
     var g = ctx.createGain();
     src.buffer = b;
+    src.playbackRate.value = rate;
+    src.loop = !!loop;
+    var level = gains[p.id] || 1;
+    g.gain.value = level;
     src.connect(g);
-    g.connect(master);
+    g.connect(fxIn);
     src.start(0);
-    current = { src: src, gain: g, id: p.id };
+    current = { src: src, gain: g, id: p.id, dur: b.duration, pos: 0, lastT: ctx.currentTime, rate: rate, loop: !!loop, level: level };
     src.onended = function () {
       if (current && current.src === src) {
         current = null;
         lightOff(p.id);
-        showNow(null);
       }
     };
-    lightUp(p, b.duration, x, y);
+    lightUp(p);
     startMeter();
   }
 
-  /* ---------- Äänen tahdissa ---------- */
-  var bg = document.getElementById('bg');
-  var raysWrap = document.getElementById('raysWrap');
-  var vuCover = document.getElementById('vuCover');
-  var level = 0, meterOn = false;
+  /* ---------- Näyttö ---------- */
+  var nowName = document.getElementById('nowName');
+  var slotChip = document.getElementById('slotChip');
+  var aika = document.getElementById('aika');
+  var waveEl = document.getElementById('wave');
+  var playhead = document.getElementById('playhead');
+  var meterCover = document.getElementById('meterCover');
+  var waveBars = [];
+  for (var wi = 0; wi < AALTOPALKIT; wi++) {
+    var wb = document.createElement('i');
+    waveEl.insertBefore(wb, playhead);
+    waveBars.push(wb);
+  }
 
+  function fmt(t) {
+    if (t < 0) t = 0;
+    var m = Math.floor(t / 60);
+    var s = t - m * 60;
+    var ss = s.toFixed(1);
+    if (s < 10) ss = '0' + ss;
+    return m + ':' + ss;
+  }
+
+  function slotName(i) { return PANKIT[Math.floor(i / PER_PANKKI)] + (i % PER_PANKKI + 1); }
+
+  function peaks(id) {
+    if (peaksCache[id]) return peaksCache[id];
+    var data = buffers[id].getChannelData(0);
+    var step = Math.max(1, Math.floor(data.length / AALTOPALKIT));
+    var out = [], max = 0.0001;
+    for (var i = 0; i < AALTOPALKIT; i++) {
+      var m = 0, from = i * step, to = Math.min(data.length, from + step);
+      for (var j = from; j < to; j += 16) {
+        var v = data[j] < 0 ? -data[j] : data[j];
+        if (v > m) m = v;
+      }
+      out.push(m);
+      if (m > max) max = m;
+    }
+    for (var k = 0; k < out.length; k++) out[k] = Math.max(0.05, out[k] / max);
+    peaksCache[id] = out;
+    return out;
+  }
+
+  function showWave(id) {
+    var pk = id ? peaks(id) : null;
+    for (var i = 0; i < AALTOPALKIT; i++) {
+      waveBars[i].style.transform = 'scaleY(' + (pk ? pk[i].toFixed(3) : '0.05') + ')';
+    }
+  }
+
+  var level = 0, meterOn = false, lastTime = 0;
   function startMeter() {
     if (meterOn) return;
     meterOn = true;
     requestAnimationFrame(tick);
   }
-  function tick() {
+  function tick(ts) {
     var peak = 0;
     if (current) {
       analyser.getByteTimeDomainData(wave);
@@ -615,289 +1611,253 @@ body.kevyt .pad.taysi { animation-name: none; }
         if (v > peak) peak = v;
       }
       peak = Math.min(1, peak / 110);
+      if (ts - lastTime > 60) {
+        lastTime = ts;
+        aika.textContent = fmt(position()) + ' / ' + fmt(current.dur) + (current.loop ? '  ∞' : '');
+      }
     }
-    level = Math.max(peak, level * 0.86);
-    vuCover.style.transform = 'scaleX(' + (1 - level).toFixed(3) + ')';
-    if (!KEVYT) {
-      bg.style.transform = 'scale(' + (1 + level * 0.3).toFixed(3) + ')';
-      raysWrap.style.opacity = (0.15 + level * 0.6).toFixed(3);
-    }
-    if (current && els[current.id]) {
-      var n = els[current.id].querySelector('.nimi');
-      if (n && !n.style.animationName) n.style.transform = 'scale(' + (1 + level * 0.5).toFixed(3) + ') rotate(' + (level * 20 - 10).toFixed(1) + 'deg)';
-    }
+    level = Math.max(peak, level * 0.9);
+    meterCover.style.transform = 'scaleY(' + (1 - level).toFixed(3) + ')';
     if (current || level > 0.01) requestAnimationFrame(tick);
-    else {
-      meterOn = false; level = 0;
-      vuCover.style.transform = 'scaleX(1)';
-      bg.style.transform = '';
-      raysWrap.style.opacity = '';
-    }
+    else { meterOn = false; level = 0; meterCover.style.transform = 'scaleY(1)'; }
   }
-
-  /* ---------- Efektit ---------- */
-  var flash = document.getElementById('flash');
-  var splash = document.getElementById('splash');
-  var now = document.getElementById('now');
-  var nowText = document.getElementById('nowText');
-  var top = document.getElementById('top');
-  var stage = document.getElementById('stage');
-  var comboEl = document.getElementById('combo');
-  var illu = document.getElementById('illu');
-  var scoreEl = document.getElementById('score');
 
   function restart(el, cls) {
     el.classList.remove(cls);
     void el.offsetWidth;
     el.classList.add(cls);
   }
-  function later(el, ms) { setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, ms); }
-  function randColor() { return 'hsl(' + Math.floor(Math.random() * 360) + ',100%,60%)'; }
 
-  function hash(str) {
-    var h = 0;
-    for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
-    return Math.abs(h);
+  // Asettaa etenemisanimaation keston ja aloituskohdan (negatiivinen viive = aloitetaan puolivälistä)
+  function setAnim(el, dur, elapsed) {
+    var loop = current && current.loop;
+    el.style.webkitAnimationDuration = el.style.animationDuration = dur + 's';
+    el.style.webkitAnimationDelay = el.style.animationDelay = (-elapsed) + 's';
+    el.style.webkitAnimationIterationCount = el.style.animationIterationCount = loop ? 'infinite' : '1';
+  }
+  function restartAnim(el, dur, elapsed) {
+    setAnim(el, dur, elapsed);
+    el.style.webkitAnimationName = el.style.animationName = 'none';
+    void el.offsetWidth;
+    el.style.webkitAnimationName = el.style.animationName = '';
   }
 
-  function confetti(x, y) {
-    var parts = [];
-    for (var i = 0; i < 18; i++) {
-      var d = document.createElement('div');
-      d.className = 'kipina';
-      if (i % 2 === 0) d.textContent = pick(EMOJIT);
-      else { d.style.background = randColor(); d.style.borderRadius = i % 3 ? '50%' : '2px'; }
-      d.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(.3)';
-      document.body.appendChild(d);
-      parts.push(d);
-    }
-    void document.body.offsetWidth;
-    parts.forEach(function (d, i) {
-      var a = (i / parts.length) * Math.PI * 2 + Math.random() * 0.6;
-      var dist = rnd(110, 300);
-      d.style.transform = 'translate(' + (x + Math.cos(a) * dist) + 'px,' + (y + Math.sin(a) * dist + 60) + 'px) rotate(' + Math.round(rnd(-720, 720)) + 'deg) scale(' + (d.textContent ? 1.5 : 1) + ')';
-      d.style.opacity = '0';
-    });
-    parts.forEach(function (d) { later(d, 950); });
+  // Toistopää ja padin palkki oikeaan kohtaan, kun nopeus muuttuu kesken soiton
+  function syncAnims() {
+    if (!current) return;
+    var D = current.dur / current.rate;
+    var E = current.pos / current.rate;
+    restartAnim(playhead, D, E);
+    var el = els[current.id];
+    if (el) restartAnim(el.querySelector('.prog'), D, E);
   }
 
-  function hitmarker(x, y) {
-    var h = document.createElement('div');
-    h.className = 'hit';
-    h.style.left = x + 'px'; h.style.top = y + 'px';
-    document.body.appendChild(h);
-    later(h, 400);
-  }
-
-  function meme(text) {
-    var d = document.createElement('div');
-    d.className = 'meme';
-    d.style.left = Math.round(window.innerWidth * rnd(0.05, 0.75)) + 'px';
-    d.style.top = Math.round(window.innerHeight * rnd(0.15, 0.85)) + 'px';
-    d.style.transform = 'rotate(' + Math.round(rnd(-35, 35)) + 'deg)';
-    var s = document.createElement('span');
-    s.textContent = text || pick(MEMET);
-    s.style.fontSize = Math.round(rnd(30, 90)) + 'px';
-    s.style.fontFamily = pick(FONTIT)[0];
-    d.appendChild(s);
-    document.body.appendChild(d);
-    later(d, 1150);
-  }
-
-  function popup() {
-    var w = document.createElement('div');
-    w.className = 'ikkuna';
-    w.style.left = Math.round(rnd(10, window.innerWidth - 340)) + 'px';
-    w.style.top = Math.round(rnd(80, window.innerHeight - 200)) + 'px';
-    w.innerHTML = '<div class="otsikko">' + pick(['Virhe', 'Varoitus', 'Huomio!!', 'Järjestelmä', 'Ankka.exe']) +
-      '<b>×</b></div><div class="runko">⚠️ ' + pick(POPUPIT) + '<span class="ok">OK</span></div>';
-    document.body.appendChild(w);
-    later(w, 1650);
-  }
-
-  function dealWithIt() {
-    var g = document.createElement('div');
-    g.className = 'lasit';
-    g.innerHTML = '<b>🕶️</b><em>DEAL WITH IT</em>';
-    document.body.appendChild(g);
-    later(g, 1900);
-  }
-
-  var combo = 0, lastHit = 0, score = 0;
-  function comboName(c) {
-    if (c >= 12) return 'GODLIKE';
-    if (c >= 9) return 'UNSTOPPABLE';
-    if (c >= 7) return 'MONSTER KILL';
-    if (c >= 5) return 'MULTI KILL';
-    if (c === 4) return 'QUADRA KILL';
-    if (c === 3) return 'OH BABY A TRIPLE';
-    if (c === 2) return 'DOUBLE KILL';
-    return '';
-  }
-
-  function addScore() {
-    var r = Math.random();
-    if (r < 0.2) score *= 2;
-    else score += pick([100, 100, 9000, -42, 1, 1337, -500, 777]);
-    scoreEl.textContent = 'PISTEET ' + (Math.random() < 0.3 ? pick(OUDOT) : score);
-    restart(scoreEl, 'pop');
-  }
-
-  function stageFx(cls) {
-    ['nytky', 'zoom', 'tarise', 'kieppi'].forEach(function (c) { stage.classList.remove(c); });
-    restart(stage, cls);
-  }
-
-  function lightUp(p, dur, x, y) {
+  function lightUp(p) {
+    var D = current.dur / current.rate;
     var el = els[p.id];
     if (el) {
-      var r = el.getBoundingClientRect();
-      if (x === undefined) { x = r.left + r.width / 2; y = r.top + r.height / 2; }
-      var prog = el.querySelector('.prog');
-      prog.style.webkitAnimationDuration = dur + 's';
-      prog.style.animationDuration = dur + 's';
-      var n = el.querySelector('.nimi');
-      n.style.transform = '';
+      setAnim(el.querySelector('.prog'), D, 0);
+      markHalf(el, current.loop);
       restart(el, 'soi');
-      n.style.animationName = 'pomppu';
-      setTimeout(function () { n.style.animationName = ''; }, 450);
     }
     document.body.classList.add('soi');
+    var c = color(p.id);
+    nowName.textContent = p.name;
+    slotChip.textContent = slotName(p.order);
+    slotChip.style.background = c;
+    slotChip.style.color = '#0a0a0a';
+    slotChip.style.setProperty('--hehku', c);
+    waveEl.style.setProperty('--vari', c);
+    showWave(p.id);
+    restartAnim(playhead, D, 0);
+    aika.textContent = '0:00.0 / ' + fmt(current.dur) + (current.loop ? '  ∞' : '');
+    updateBanks();
+  }
 
-    var t = Date.now();
-    combo = (t - lastHit < 1500) ? combo + 1 : 1;
-    lastHit = t;
-
-    if (x !== undefined) { hitmarker(x, y); confetti(x, y); }
-    flash.style.background = randColor();
-    restart(flash, 'isku');
-
-    splash.textContent = p.name;
-    splash.style.color = randColor();
-    splash.style.fontFamily = pick(FONTIT)[0];
-    ['lenna', 'spin', 'slam', 'venyy'].forEach(function (c) { splash.classList.remove(c); });
-    restart(splash, pick(['lenna', 'spin', 'slam', 'venyy']));
-
-    var m = Math.min(2 + Math.floor(combo / 2), 6);
-    for (var i = 0; i < m; i++) meme();
-    if (Math.random() < 0.3) popup();
-
-    var name = comboName(combo);
-    if (name) {
-      comboEl.textContent = name + (combo > 2 ? ' x' + combo : '');
-      comboEl.style.fontFamily = pick(FONTIT)[0];
-      restart(comboEl, 'slam');
-    }
-    var roll = Math.random();
-    if (roll < 0.08) stageFx('kieppi');
-    else if (combo >= 3 || roll < 0.3) { stageFx('zoom'); restart(top, 'zoom'); }
-    else stageFx('nytky');
-    if (combo >= 3 || Math.random() < 0.15) restart(illu, 'nayta');
-    if ((combo >= 5 && combo % 5 === 0) || Math.random() < 0.07) dealWithIt();
-
-    addScore();
-    showNow(p);
+  function markHalf(el, loop) {
+    el.querySelector('.half.l').classList[loop ? 'remove' : 'add']('aktiivinen');
+    el.querySelector('.half.r').classList[loop ? 'add' : 'remove']('aktiivinen');
   }
 
   function lightOff(id) {
     var el = els[id];
     if (el) {
       el.classList.remove('soi');
-      var n = el.querySelector('.nimi');
-      if (n) n.style.transform = '';
+      el.querySelector('.half.l').classList.remove('aktiivinen');
+      el.querySelector('.half.r').classList.remove('aktiivinen');
     }
     document.body.classList.remove('soi');
-  }
-
-  function showNow(p) {
-    nowText.innerHTML = '';
-    var txt = p ? p.name : pick(['Hiljaista??', 'zzz', '...', 'Kuka siellä?', 'HILJAISTA', 'Tyhjää']);
-    Array.from(txt).slice(0, 40).forEach(function (c, i) {
-      var s = document.createElement('span');
-      s.className = 'k';
-      s.textContent = c === ' ' ? '\u00a0' : c;
-      if (p) {
-        s.style.color = randColor();
-        s.style.fontFamily = pick(FONTIT)[0];
-      }
-      s.style.animationDelay = (i * 0.05) + 's';
-      nowText.appendChild(s);
-    });
+    nowName.textContent = 'Nothing playing. Yet.';
+    slotChip.textContent = '—';
+    slotChip.style.background = '';
+    slotChip.style.color = '';
+    aika.textContent = '0:00.0';
+    showWave(null);
+    updateBanks();
   }
 
   /* ---------- STOP ---------- */
   var stopBtn = document.getElementById('stop');
-  var stopText = document.getElementById('stopText');
   var stopTouched = false;
-  setInterval(function () { stopText.textContent = pick(STOPIT); }, 700);
   function hitStop() {
-    var wasPlaying = !!current;
     stopCurrent();
-    restart(stopBtn, 'isku');
-    setTimeout(function () { stopBtn.classList.remove('isku'); }, 150);
-    restart(top, 'tarise');
-    stageFx('tarise');
-    flash.style.background = '#ff1f3d';
-    restart(flash, 'isku');
-    if (wasPlaying) {
-      splash.textContent = pick(REKT);
-      splash.style.color = '#ff1f3d';
-      splash.style.fontFamily = pick(FONTIT)[0];
-      ['lenna', 'spin', 'slam', 'venyy'].forEach(function (c) { splash.classList.remove(c); });
-      restart(splash, 'slam');
-      meme(); meme(); meme();
-      if (Math.random() < 0.5) popup();
-    }
-    combo = 0;
+    stopBtn.classList.add('isku');
+    setTimeout(function () { stopBtn.classList.remove('isku'); }, 140);
   }
   stopBtn.addEventListener('touchstart', function (e) { stopTouched = true; e.preventDefault(); hitStop(); }, { passive: false });
   stopBtn.addEventListener('click', function () { if (!stopTouched) hitStop(); });
 
-  /* ---------- Sormen jälki ja jatkuva kaaos ---------- */
-  var lastTrail = 0;
-  document.addEventListener('touchmove', function (e) {
-    if (KEVYT) return;
-    var t = Date.now();
-    if (t - lastTrail < 70) return;
-    lastTrail = t;
-    var d = document.createElement('div');
-    d.className = 'jalki';
-    d.textContent = pick(EMOJIT);
-    d.style.left = e.touches[0].clientX + 'px';
-    d.style.top = e.touches[0].clientY + 'px';
-    document.body.appendChild(d);
-    later(d, 820);
-  }, { passive: true });
+  /* ---------- Nopeusliuku ---------- */
+  var speedEl = document.getElementById('speed');
+  var track = document.getElementById('track');
+  var knob = document.getElementById('knob');
+  var speedFill = document.getElementById('speedFill');
+  var speedVal = document.getElementById('speedVal');
 
-  if (!KEVYT) {
-    for (var ri = 0; ri < 10; ri++) {
-      var s = document.createElement('div');
-      s.className = 'sade';
-      s.textContent = pick(EMOJIT);
-      s.style.left = Math.round(rnd(0, 95)) + 'vw';
-      var dur = rnd(5, 12);
-      s.style.animation = 'sada ' + dur.toFixed(1) + 's linear -' + rnd(0, dur).toFixed(1) + 's infinite';
-      document.body.appendChild(s);
+  function setSpeed(v) {
+    v = Math.max(-NOPEUS_MAX, Math.min(NOPEUS_MAX, v));
+    if (Math.abs(v) < NOPEUS_NAPSAHDUS) v = 0;
+    rate = 1 + v;
+
+    // liukusäätimen ulkoasu
+    var pct = 50 + (v / NOPEUS_MAX) * 50;
+    knob.style.left = pct + '%';
+    speedFill.style.left = Math.min(pct, 50) + '%';
+    speedFill.style.width = Math.abs(pct - 50) + '%';
+    if (v === 0) {
+      speedVal.textContent = 'NORMAL';
+      speedEl.classList.remove('muutettu');
+    } else {
+      speedVal.textContent = (v > 0 ? '+' : '−') + Math.round(Math.abs(v) * 100) + '%  ' + rate.toFixed(2) + '×';
+      speedEl.classList.add('muutettu');
+    }
+
+    // soiva sample muuttuu heti
+    if (current) {
+      current.pos = position();
+      current.lastT = ctx.currentTime;
+      current.rate = rate;
+      try { current.src.playbackRate.value = rate; } catch (e) {}
+      syncAnims();
     }
   }
 
-  // satunnainen meemi silloin tällöin itsestään
-  var lastTouch = Date.now();
-  document.addEventListener('touchstart', function () { lastTouch = Date.now(); }, true);
-  document.addEventListener('mousedown', function () { lastTouch = Date.now(); }, true);
-  setInterval(function () {
-    if (editing) return;
-    if (Math.random() < 0.35) meme();
-    if (!current && Date.now() - lastTouch > 8000) {
-      var ids = Object.keys(els);
-      if (ids.length) {
-        var el = els[pick(ids)];
-        restart(el, 'vilkku');
-        setTimeout(function () { el.classList.remove('vilkku'); }, 650);
-      }
-      if (Math.random() < 0.1) popup();
+  function speedFromX(clientX) {
+    var r = track.getBoundingClientRect();
+    var f = (clientX - r.left) / r.width;       // 0..1
+    setSpeed((f - 0.5) * 2 * NOPEUS_MAX);
+  }
+
+  // Veto säätää, yksi napautus palauttaa normaaliin nopeuteen
+  var sx = 0, moved = false, mouseDown = false;
+  speedEl.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+    sx = e.touches[0].clientX; moved = false;
+  }, { passive: false });
+  speedEl.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+    var x = e.touches[0].clientX;
+    if (!moved && Math.abs(x - sx) > 6) moved = true;
+    if (moved) speedFromX(x);
+  }, { passive: false });
+  speedEl.addEventListener('touchend', function (e) {
+    e.preventDefault();
+    if (!moved) setSpeed(0);
+  }, { passive: false });
+  speedEl.addEventListener('mousedown', function (e) { mouseDown = true; sx = e.clientX; moved = false; e.preventDefault(); });
+  document.addEventListener('mousemove', function (e) {
+    if (!mouseDown) return;
+    if (!moved && Math.abs(e.clientX - sx) > 6) moved = true;
+    if (moved) speedFromX(e.clientX);
+  });
+  document.addEventListener('mouseup', function () {
+    if (!mouseDown) return;
+    mouseDown = false;
+    if (!moved) setSpeed(0);
+  });
+
+  /* ---------- Efektien liukusäätimet ---------- */
+  var fxRow = document.getElementById('fx');
+
+  // Pieni välähdys, kun efektiä säädetään (vedettäessä korkeintaan ~6 kertaa sekunnissa)
+  function valahda(f) {
+    var t = Date.now();
+    if (t - (f.viimeVali || 0) < 160) return;
+    f.viimeVali = t;
+    restart(f.el, 'valahdys');
+  }
+
+  function setFx(f, a) {
+    a = Math.max(0, Math.min(1, a));
+    if (a < 0.02) a = 0;
+    f.amt = a;
+    f.knob.style.left = (a * 100) + '%';
+    f.fill.style.width = (a * 100) + '%';
+    f.val.textContent = a === 0 ? 'OFF' : Math.round(a * 100) + '%';
+    f.el.classList[a > 0 ? 'add' : 'remove']('on');
+    kytke(f.mod, a > 0);
+    f.mod.set(a);
+    if (a !== f.edellinen) valahda(f);
+    f.edellinen = a;
+    var any = FX.some(function (x) { return x.amt > 0; });
+    document.body.classList[any ? 'add' : 'remove']('fxOn');
+  }
+
+  // Veto säätää, yksi napautus nollaa efektin
+  function bindFx(f) {
+    var sx = 0, moved = false, down = false;
+    function fromX(x) {
+      var r = f.track.getBoundingClientRect();
+      setFx(f, (x - r.left) / r.width);
     }
-  }, 900);
+    f.el.addEventListener('touchstart', function (e) { e.preventDefault(); sx = e.touches[0].clientX; moved = false; }, { passive: false });
+    f.el.addEventListener('touchmove', function (e) {
+      e.preventDefault();
+      var x = e.touches[0].clientX;
+      if (!moved && Math.abs(x - sx) > 6) moved = true;
+      if (moved) fromX(x);
+    }, { passive: false });
+    f.el.addEventListener('touchend', function (e) { e.preventDefault(); if (!moved) setFx(f, 0); }, { passive: false });
+    f.el.addEventListener('mousedown', function (e) { down = true; sx = e.clientX; moved = false; e.preventDefault(); });
+    document.addEventListener('mousemove', function (e) {
+      if (!down) return;
+      if (!moved && Math.abs(e.clientX - sx) > 6) moved = true;
+      if (moved) fromX(e.clientX);
+    });
+    document.addEventListener('mouseup', function () { if (!down) return; down = false; if (!moved) setFx(f, 0); });
+  }
+
+  FX.forEach(function (f) {
+    var el = document.createElement('div');
+    el.className = 'fx';
+    el.style.setProperty('--v', f.color);
+    el.innerHTML =
+      '<div class="fxTop"><span class="fxName">' + f.name + '</span></div>' +
+      '<div class="trk"><div class="trkIn"><div class="grv"></div><div class="fil"></div><div class="knb"></div></div>' +
+      '<span class="fxVal luvut">OFF</span></div>' +
+      '<div class="fxDesc">' + f.desc + '</div>';
+    fxRow.appendChild(el);
+    f.el = el;
+    f.track = el.querySelector('.trkIn');
+    f.knob = el.querySelector('.knb');
+    f.fill = el.querySelector('.fil');
+    f.val = el.querySelector('.fxVal');
+    bindFx(f);
+  });
+
+  var fxReset = document.createElement('button');
+  fxReset.type = 'button';
+  fxReset.id = 'fxReset';
+  fxReset.className = 'hehku';
+  fxReset.innerHTML = 'RESET<br>FX';
+  function resetAll() {
+    FX.forEach(function (f) { setFx(f, 0); });
+    fxReset.classList.add('isku');
+    setTimeout(function () { fxReset.classList.remove('isku'); }, 140);
+  }
+  fxReset.addEventListener('touchstart', function (e) { e.preventDefault(); resetAll(); }, { passive: false });
+  fxReset.addEventListener('click', resetAll);
+  fxRow.appendChild(fxReset);
 
   /* ---------- Tallennus (IndexedDB) ---------- */
   var db;
@@ -939,10 +1899,18 @@ body.kevyt .pad.taysi { animation-name: none; }
   for (var k = 0; k < PAIKKOJA; k++) slots.push(null);
   var els = {};
   var editing = false;
+  var bank = 0;
   var targetSlot = 0;
-  var board = document.getElementById('board');
-  var editBtn = document.getElementById('editBtn');
+  var grid = document.getElementById('grid');
+  var side = document.getElementById('side');
   var fileInput = document.getElementById('fileInput');
+
+  function hash(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+  function color(id) { return VARIT[hash(id) % VARIT.length]; }
 
   function tool(text, cls, fn) {
     var b = document.createElement('button');
@@ -953,80 +1921,141 @@ body.kevyt .pad.taysi { animation-name: none; }
     return b;
   }
 
-  function bindPad(el, p) {
-    var usedTouch = false, waiting = false, tx, ty;
-    el.addEventListener('touchstart', function (e) {
+  // Luo padin puolikkaan: loop = false -> SINGLE SHOT, true -> LOOP
+  function half(el, p, loop) {
+    var h = document.createElement('div');
+    h.className = 'half ' + (loop ? 'r' : 'l');
+    h.innerHTML = '<span class="pill"><b>' + (loop ? '↻' : '▶') + '</b>' + (loop ? 'LOOP' : 'SINGLE SHOT') + '</span>';
+    var usedTouch = false, waiting = false;
+    h.addEventListener('touchstart', function (e) {
       usedTouch = true;
       if (editing) return;
       e.preventDefault();
-      tx = e.touches[0].clientX; ty = e.touches[0].clientY;
-      if (ctx.state === 'running') play(p, tx, ty); else waiting = true;
+      h.classList.add('painettu');
+      if (ctx.state === 'running') play(p, loop); else waiting = true;
     }, { passive: false });
-    el.addEventListener('touchend', function (e) {
+    h.addEventListener('touchend', function (e) {
+      h.classList.remove('painettu');
       if (editing) return;
       e.preventDefault();
       unlock();
-      if (waiting) { waiting = false; play(p, tx, ty); }
+      if (waiting) { waiting = false; play(p, loop); }
     }, { passive: false });
-    el.addEventListener('click', function (e) {
+    h.addEventListener('click', function () {
       if (editing) { rename(p); return; }
       if (usedTouch) return;
       unlock();
-      play(p, e.clientX, e.clientY);
+      play(p, loop);
     });
+    el.appendChild(h);
+  }
+
+  function meta(slotText, rightText, withPlay) {
+    var m = document.createElement('div');
+    m.className = 'meta';
+    var l = document.createElement('span');
+    l.className = 'pieni';
+    if (withPlay) {
+      var pl = document.createElement('span');
+      pl.className = 'play';
+      l.appendChild(pl);
+    }
+    l.appendChild(document.createTextNode(slotText));
+    m.appendChild(l);
+    if (rightText !== null) {
+      var r = document.createElement('span');
+      r.className = 'pieni luvut';
+      r.textContent = rightText;
+      m.appendChild(r);
+    }
+    return m;
   }
 
   function render() {
-    var scroll = board.scrollTop;
-    board.innerHTML = '';
+    grid.innerHTML = '';
     els = {};
-    slots.forEach(function (p, i) {
-      var el;
-      if (p) {
-        var h = hash(p.id);
-        var f = FONTIT[h % FONTIT.length];
-        el = document.createElement('div');
-        el.className = 'pad taysi w' + (1 + hash(p.id + 'w') % 5) + ' k' + (hash(p.id + 'k') % 6) + (buffers[p.id] ? '' : ' lataa');
-        el.style.setProperty('--h', h % 360);
-        el.style.setProperty('--muoto', MUODOT[hash(p.id + 'm') % MUODOT.length]);
-        el.style.fontFamily = f[0];
-        el.style.fontSize = f[1] + 'px';
-        el.style.color = hash(p.id + 'c') % 2 ? '#fff' : '#140a26';
-        el.style.textShadow = hash(p.id + 'c') % 2 ? '2px 2px 0 #000' : '2px 2px 0 rgba(255,255,255,.5)';
+    for (var i = bank * PER_PANKKI; i < (bank + 1) * PER_PANKKI; i++) {
+      (function (i) {
+        var p = slots[i];
+        var el;
+        if (p) {
+          el = document.createElement('div');
+          el.className = 'pad taysi hehku' + (buffers[p.id] ? '' : ' lataa');
+          el.style.setProperty('--c', color(p.id));
+          el.innerHTML = '<div class="fill"></div><div class="strip"></div>';
 
-        var label = document.createElement('span');
-        label.className = 'nimi';
-        var flip = document.createElement('span');
-        var fl = hash(p.id + 'f') % 8;
-        flip.className = 'flip' + (fl === 2 ? ' vino' : '');
-        flip.textContent = p.name;
-        label.appendChild(flip);
-        el.appendChild(label);
+          var n = document.createElement('span');
+          n.className = 'nimi spray';
+          n.textContent = p.name;
+          el.appendChild(n);
 
-        var prog = document.createElement('div');
-        prog.className = 'prog';
-        el.appendChild(prog);
+          el.appendChild(meta(slotName(i), buffers[p.id] ? fmt(buffers[p.id].duration) : '···', true));
 
-        var tools = document.createElement('div');
-        tools.className = 'tools';
-        tools.appendChild(tool('◀', 'siirra', function () { move(i, -1); }));
-        tools.appendChild(tool('✕', 'poista', function () { remove(p); }));
-        tools.appendChild(tool('▶', 'siirra', function () { move(i, 1); }));
-        el.appendChild(tools);
+          var prog = document.createElement('div');
+          prog.className = 'prog';
+          el.appendChild(prog);
 
-        bindPad(el, p);
-        els[p.id] = el;
-      } else {
-        el = document.createElement('label');
-        el.className = 'pad tyhja';
-        el.htmlFor = 'fileInput';
-        el.textContent = '+ Lisää sample';
-        el.addEventListener('click', function () { targetSlot = i; });
+          var tools = document.createElement('div');
+          tools.className = 'tools';
+          tools.appendChild(tool('◀', 'siirra', function () { move(i, -1); }));
+          tools.appendChild(tool('✕', 'poista', function () { remove(p); }));
+          tools.appendChild(tool('▶', 'siirra', function () { move(i, 1); }));
+          el.appendChild(tools);
+
+          half(el, p, false);
+          half(el, p, true);
+          els[p.id] = el;
+
+          if (current && current.id === p.id) {
+            setAnim(prog, current.dur / current.rate, position() / current.rate);
+            markHalf(el, current.loop);
+            el.classList.add('soi');
+          }
+        } else {
+          el = document.createElement('label');
+          el.className = 'pad tyhja';
+          el.htmlFor = 'fileInput';
+          el.appendChild(meta(slotName(i), null, false));
+          var plus = document.createElement('span');
+          plus.className = 'plus';
+          el.appendChild(plus);
+          el.addEventListener('click', function () { targetSlot = i; });
+        }
+        grid.appendChild(el);
+      })(i);
+    }
+    updateBanks();
+  }
+
+  var bankBtns = [];
+  PANKIT.forEach(function (name, b) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pankki hehku';
+    btn.innerHTML = '<span class="kirjain spray">' + name + '</span><span class="maara luvut"></span><span class="piste"></span>';
+    btn.addEventListener('click', function () { bank = b; render(); });
+    btn.addEventListener('touchstart', function (e) { e.preventDefault(); bank = b; render(); }, { passive: false });
+    side.appendChild(btn);
+    bankBtns.push(btn);
+  });
+  var editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.id = 'editBtn';
+  editBtn.className = 'hehku';
+  editBtn.textContent = 'EDIT';
+
+  side.appendChild(editBtn);
+
+  function updateBanks() {
+    bankBtns.forEach(function (btn, b) {
+      var n = 0, playing = false;
+      for (var i = b * PER_PANKKI; i < (b + 1) * PER_PANKKI; i++) {
+        if (slots[i]) { n++; if (current && current.id === slots[i].id) playing = true; }
       }
-      board.appendChild(el);
+      btn.querySelector('.maara').textContent = n + '/' + PER_PANKKI;
+      btn.classList[b === bank ? 'add' : 'remove']('valittu');
+      btn.classList[playing ? 'add' : 'remove']('soi');
     });
-    board.scrollTop = scroll;
-    updateBar();
   }
 
   /* ---------- Muokkaus ---------- */
@@ -1054,7 +2083,7 @@ body.kevyt .pad.taysi { animation-name: none; }
     files.forEach(function (file) {
       chain = chain.then(function () {
         var slot = freeSlotFrom(targetSlot);
-        if (slot < 0) { alert('Kaikki ' + PAIKKOJA + ' paikkaa ovat täynnä.'); return; }
+        if (slot < 0) { alert('All ' + PAIKKOJA + ' pads are full.'); return; }
         return readFile(file).then(function (data) {
           return decode(data).then(function (buf) {
             var p = {
@@ -1066,34 +2095,37 @@ body.kevyt .pad.taysi { animation-name: none; }
               .then(function () { return saveMeta(p); })
               .then(function () {
                 buffers[p.id] = buf;
+                tasoita(p.id, buf);
                 slots[slot] = p;
                 targetSlot = slot + 1;
                 render();
               });
           });
         })['catch'](function () {
-          alert('Tiedostoa "' + file.name + '" ei voitu lukea. Tarkista, että se on mp3.');
+          alert('Could not read "' + file.name + '". Make sure it is an mp3 file.');
         });
       });
     });
   });
 
   function rename(p) {
-    var n = prompt('Painikkeen nimi', p.name);
+    var n = prompt('Pad name', p.name);
     if (n === null) return;
     n = n.trim();
     if (!n) return;
     p.name = n;
     saveMeta(p);
+    if (current && current.id === p.id) nowName.textContent = n;
     render();
   }
 
   function remove(p) {
-    if (!confirm('Poistetaanko "' + p.name + '"?')) return;
+    if (!confirm('Delete "' + p.name + '"?')) return;
     if (current && current.id === p.id) stopCurrent();
     req('meta', 'readwrite', function (s) { return s['delete'](p.id); });
     req('audio', 'readwrite', function (s) { return s['delete'](p.id); });
     delete buffers[p.id];
+    delete peaksCache[p.id];
     slots[p.order] = null;
     render();
   }
@@ -1104,53 +2136,22 @@ body.kevyt .pad.taysi { animation-name: none; }
     var t = slots[i]; slots[i] = slots[j]; slots[j] = t;
     if (slots[i]) { slots[i].order = i; saveMeta(slots[i]); }
     if (slots[j]) { slots[j].order = j; saveMeta(slots[j]); }
+    if (Math.floor(j / PER_PANKKI) !== bank) bank = Math.floor(j / PER_PANKKI);
     render();
   }
 
   editBtn.addEventListener('click', function () {
     editing = !editing;
     document.body.classList[editing ? 'add' : 'remove']('editing');
-    editBtn.textContent = editing ? 'Valmis' : '✎';
+    editBtn.textContent = editing ? 'DONE' : 'EDIT';
   });
 
-  /* ---------- Iso vierityspalkki ---------- */
-  var bar = document.getElementById('bar');
-  var thumb = document.getElementById('thumb');
-
-  function updateBar() {
-    var sh = board.scrollHeight, ch = board.clientHeight;
-    if (sh <= ch + 1) { bar.className = 'piilossa'; return; }
-    bar.className = '';
-    var trackH = bar.clientHeight;
-    var th = Math.max(60, trackH * ch / sh);
-    thumb.style.height = th + 'px';
-    thumb.style.top = ((trackH - th) * board.scrollTop / (sh - ch)) + 'px';
-  }
-
-  function seek(clientY) {
-    var r = bar.getBoundingClientRect();
-    var th = thumb.offsetHeight;
-    var ratio = (clientY - r.top - th / 2) / (r.height - th);
-    ratio = Math.max(0, Math.min(1, ratio));
-    board.scrollTop = ratio * (board.scrollHeight - board.clientHeight);
-    updateBar();
-  }
-
-  bar.addEventListener('touchstart', function (e) { e.preventDefault(); seek(e.touches[0].clientY); }, { passive: false });
-  bar.addEventListener('touchmove', function (e) { e.preventDefault(); seek(e.touches[0].clientY); }, { passive: false });
-  var dragging = false;
-  bar.addEventListener('mousedown', function (e) { dragging = true; seek(e.clientY); e.preventDefault(); });
-  document.addEventListener('mousemove', function (e) { if (dragging) seek(e.clientY); });
-  document.addEventListener('mouseup', function () { dragging = false; });
-
-  board.addEventListener('scroll', updateBar);
-  window.addEventListener('resize', updateBar);
-  window.addEventListener('orientationchange', function () { setTimeout(updateBar, 300); });
-
   /* ---------- Käynnistys ---------- */
-  showNow(null);
+  showWave(null);
+  setSpeed(0);
   openDB().then(function (d) {
     db = d;
+    req('audio', 'readwrite', function (s) { return s['delete']('__bg__'); })['catch'](function () {});
     return allMeta();
   }).then(function (list) {
     list.sort(function (a, b) { return a.order - b.order; });
@@ -1172,13 +2173,21 @@ body.kevyt .pad.taysi { animation-name: none; }
         return req('audio', 'readonly', function (s) { return s.get(p.id); })
           .then(function (rec) { return rec ? decode(rec.data) : null; })
           .then(function (buf) {
-            if (buf) { buffers[p.id] = buf; if (els[p.id]) els[p.id].classList.remove('lataa'); }
+            if (!buf) return;
+            buffers[p.id] = buf;
+            tasoita(p.id, buf);
+            var el = els[p.id];
+            if (el) {
+              el.classList.remove('lataa');
+              var spans = el.querySelectorAll('.meta .pieni');
+              if (spans[1]) spans[1].textContent = fmt(buf.duration);
+            }
           })['catch'](function () {});
       });
     });
   })['catch'](function () {
     render();
-    alert('Tallennustilaa ei saatu auki. Avaa sivu osoitteesta (https://...), ei tiedostona.');
+    alert('Could not open storage. Open the app from its web address (https://...), not as a file.');
   });
 
   if ('serviceWorker' in navigator) {
