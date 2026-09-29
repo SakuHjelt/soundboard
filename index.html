@@ -1296,8 +1296,8 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   border-radius: 50%;
   background: radial-gradient(circle, rgba(212,160,23,.45) 0%, rgba(212,160,23,0) 65%);
   opacity: 0;
-  animation: introHehku 1.25s ease-out forwards;
 }
+#intro:not(.pois):not(.siirto)::before { animation: introHehku 1.25s ease-out forwards; }
 @keyframes introHehku {
   0% { opacity: 0; } 15% { opacity: 1; } 25% { opacity: .3; } 35% { opacity: .9; }
   50% { opacity: .4; } 65% { opacity: .8; } 100% { opacity: .5; }
@@ -1406,23 +1406,41 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
      2) kompressori tasaa voimakkuuseroja samplen sisällä ja efektien jälkeen
      3) limitteri varmistaa, ettei mikään ylitä kattoa */
   var comp = ctx.createDynamicsCompressor();
-  comp.threshold.value = -26;
-  comp.knee.value = 12;
-  comp.ratio.value = 4;
-  comp.attack.value = 0.005;
-  comp.release.value = 0.2;
+  /* Huom: selaimen kompressori nostaa tasoa automaattisesti itsekin.
+     Siksi ketjussa ei ole erillistä tasonnostoa, ja lopussa on
+     tasonlasku (trim) ja pehmeä leikkuri, ettei ääni koskaan säröydy. */
+  comp.threshold.value = -18;
+  comp.knee.value = 10;
+  comp.ratio.value = 2.5;
+  comp.attack.value = 0.01;
+  comp.release.value = 0.25;
   var makeup = ctx.createGain();
-  makeup.gain.value = 1.8;          // kompressorin jälkeinen tason nosto
+  makeup.gain.value = 1;            // ei ylimääräistä tasonnostoa
   var limiter = ctx.createDynamicsCompressor();
-  limiter.threshold.value = -6;
-  limiter.knee.value = 0;
+  limiter.threshold.value = -4;
+  limiter.knee.value = 2;
   limiter.ratio.value = 20;
-  limiter.attack.value = 0.002;
-  limiter.release.value = 0.12;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.25;
+  // lopullinen tason lasku: kompressorien automaattinen nosto kompensoidaan
+  var trim = ctx.createGain();
+  trim.gain.value = 0.6;            // koko appin lopputaso (0.6 = noin -4 dB)
+  // pehmeä leikkuri: huiput pyöristetään eikä niitä leikata karkeasti
+  var pehmea = ctx.createWaveShaper();
+  (function () {
+    var n = 2048, c = new Float32Array(n);
+    for (var i = 0; i < n; i++) {
+      var x = i * 2 / (n - 1) - 1;
+      c[i] = Math.abs(x) < 0.8 ? x : (x > 0 ? 1 : -1) * (0.8 + 0.2 * Math.tanh((Math.abs(x) - 0.8) / 0.2));
+    }
+    pehmea.curve = c;
+  })();
   master.connect(comp);
   comp.connect(makeup);
   makeup.connect(limiter);
-  limiter.connect(analyser);
+  limiter.connect(trim);
+  trim.connect(pehmea);
+  pehmea.connect(analyser);
   analyser.connect(ctx.destination);
   var wave = new Uint8Array(analyser.fftSize);
 
@@ -1640,7 +1658,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     var rms = count ? Math.sqrt(sum / count) : 0;
     var g = rms > 0 ? TAVOITE / rms : 1;
     g = Math.min(g, 2 / peak);              // huiput korkeintaan +6 dB yli, limitteri hoitaa loput
-    g = Math.max(0.1, Math.min(10, g));
+    g = Math.max(0.1, Math.min(4, g));      // korkeintaan +12 dB, ettei taustakohina nouse
     gains[id] = g;
   }
 
@@ -2393,24 +2411,33 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     alert('Could not open storage. Open the app from its web address (https://...), not as a file.');
   });
 
-  /* ---------- Intro ---------- */
+  /* ---------- Intro ----------
+     iOS ei aina lataa kotinäytön appia uudelleen, vaan palauttaa sen
+     muistista. Siksi intro näytetään sekä käynnistyksessä että silloin,
+     kun appi palaa näkyviin oltuaan poissa yli PALUU_SEK sekuntia. */
+  var PALUU_SEK = 30;
   (function () {
     var introEl = document.getElementById('intro');
     var logo = document.getElementById('introLogo');
     var stopNappi = document.getElementById('stop');
-    var valmis = false;
+    var kaynnissa = false, ajastimet = [];
+
+    function ajasta(fn, ms) { ajastimet.push(setTimeout(fn, ms)); }
+    function tyhjenna() { ajastimet.forEach(clearTimeout); ajastimet = []; }
 
     function lopeta() {
-      if (valmis) return;
-      valmis = true;
+      if (!kaynnissa) return;
+      kaynnissa = false;
+      tyhjenna();
       introEl.classList.add('pois');
-      setTimeout(function () { if (introEl.parentNode) introEl.parentNode.removeChild(introEl); }, 350);
+      setTimeout(function () { if (!kaynnissa) introEl.style.display = 'none'; }, 350);
     }
 
     // logo liukuu STOP-napin kohdalle ja kutistuu sen kokoiseksi
     function siirra() {
-      if (valmis) return;
-      logo.style.animation = 'none';
+      if (!kaynnissa) return;
+      logo.classList.remove('syke');
+      logo.style.transition = 'none';
       logo.style.opacity = '1';
       logo.style.transform = 'none';
       void logo.offsetWidth;
@@ -2424,26 +2451,51 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
       logo.style.boxShadow = 'none';
       logo.style.opacity = '0';
       introEl.classList.add('siirto');
-      setTimeout(lopeta, 720);
+      ajasta(lopeta, 720);
     }
 
-    function aloita() {
+    function nayta() {
+      var hidasLiike = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (hidasLiike || !(logo.complete && logo.naturalWidth)) return;
+      tyhjenna();
+      kaynnissa = true;
+      // palautetaan alkutila
+      introEl.classList.remove('siirto', 'pois');
+      introEl.style.display = '';
+      logo.style.transition = 'none';
+      logo.style.transform = '';
+      logo.style.opacity = '';
+      logo.style.boxShadow = '';
+      logo.classList.remove('syke');
+      // hehkun animaatio käynnistetään alusta
+      introEl.style.animation = 'none';
+      void introEl.offsetWidth;
+      introEl.style.animation = '';
       logo.classList.add('syke');
-      setTimeout(siirra, 1250);
+      ajasta(siirra, 1250);
+      ajasta(lopeta, 4000);                // varmistus: intro ei koskaan jää päälle
     }
 
     // napautus ohittaa intron
     introEl.addEventListener('touchstart', function (e) { e.preventDefault(); lopeta(); }, { passive: false });
     introEl.addEventListener('click', lopeta);
 
-    var hidasLiike = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (hidasLiike) { lopeta(); return; }
-    if (logo.complete && logo.naturalWidth) aloita();
+    // käynnistys: musta ruutu on heti näkyvissä, logo tulee kun kuva on ladattu
+    kaynnissa = true;
+    if (logo.complete && logo.naturalWidth) nayta();
     else {
-      logo.onload = aloita;
-      logo.onerror = lopeta;              // jos kuvaa ei ole, intro ohitetaan
+      logo.onload = nayta;
+      logo.onerror = lopeta;               // jos kuvaa ei ole, intro ohitetaan
+      ajasta(lopeta, 2500);
     }
-    setTimeout(lopeta, 4000);             // varmistus: intro ei koskaan jää päälle
+
+    // paluu taustalta tai muistista
+    var piilossaAlkaen = 0;
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) piilossaAlkaen = Date.now();
+      else if (piilossaAlkaen && Date.now() - piilossaAlkaen > PALUU_SEK * 1000) nayta();
+    });
+    window.addEventListener('pageshow', function (e) { if (e.persisted) nayta(); });
   })();
 
   if ('serviceWorker' in navigator) {
