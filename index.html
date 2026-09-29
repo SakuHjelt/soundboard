@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Soundboard">
 <title>Soundboard</title>
 <style>
@@ -1185,6 +1185,77 @@ body.soi .stopHehku {
 @media (prefers-reduced-motion: reduce) {
   #stop::after, #stopKuva, body.soi #stop::before, body.soi .stopWrap, body.soi .stopHehku { animation: none; }
 }
+
+/* =====================================================================
+   IPAD-ASETTELU
+   Padin sisältö on pinottu (paikkatunnus -> nimi -> napit), jolloin
+   mikään ei voi mennä päällekkäin, vaikka padi olisi matala. Nimi vie
+   sen tilan, joka nappien ja paikkatunnuksen välistä jää.
+   Matalilla ruuduilla (esim. Safari, jossa osoitepalkki vie tilaa)
+   koot pienenevät automaattisesti.
+   ===================================================================== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+:root {
+  --pill-h: 38px;          /* SINGLE SHOT / LOOP -nappien korkeus */
+  --nimi-koko: 21px;       /* padin nimen fonttikoko */
+}
+.pad.taysi {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 10px calc(var(--pill-h) + 12px);
+}
+.pad.taysi .meta {
+  position: relative;
+  top: auto; left: auto; right: auto; bottom: auto;
+  flex: 0 0 auto;
+  order: 1;
+}
+.nimiAla {
+  order: 2;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+}
+.pad.taysi .nimi {
+  position: static;
+  top: auto; left: auto; right: auto;
+  max-width: 100%;
+  font-size: var(--nimi-koko);
+}
+/* napin teksti saa jakautua kahdelle riville, jos tila on kapea */
+.pill { height: var(--pill-h); flex-direction: row; padding: 0 4px; }
+.pill b { margin-right: 5px; font-size: 14px; line-height: 1; }
+.pill .teksti {
+  white-space: normal;
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.05;
+  letter-spacing: .02em;
+}
+
+/* Matala ruutu (vaaka-asento Safarissa) */
+@media (max-height: 740px) {
+  :root { --pill-h: 32px; --nimi-koko: 17px; --ylapalkki: 68px; --fxrivi: 84px; }
+  .pad.taysi { padding-top: 12px; }
+  #speed { padding: 6px 14px 4px; }
+  #track { height: 22px; }
+  #groove, #speedFill { top: 9px; }
+  .tick { top: 3px; height: 16px; }
+  .tick.keski { top: 0; height: 22px; }
+  #knob { height: 22px; }
+  #knob::before { top: 4px; height: 14px; }
+}
+/* Pystyasento: padit ovat kapeampia ja matalampia */
+@media (orientation: portrait) {
+  :root { --pill-h: 32px; --nimi-koko: 17px; }
+  .pill .teksti { font-size: 10px; }
+}
 </style>
 </head>
 <body>
@@ -1925,7 +1996,7 @@ body.soi .stopHehku {
   function half(el, p, loop) {
     var h = document.createElement('div');
     h.className = 'half ' + (loop ? 'r' : 'l');
-    h.innerHTML = '<span class="pill"><b>' + (loop ? '↻' : '▶') + '</b>' + (loop ? 'LOOP' : 'SINGLE SHOT') + '</span>';
+    h.innerHTML = '<span class="pill"><b>' + (loop ? '↻' : '▶') + '</b><span class="teksti">' + (loop ? 'LOOP' : 'SINGLE SHOT') + '</span></span>';
     var usedTouch = false, waiting = false;
     h.addEventListener('touchstart', function (e) {
       usedTouch = true;
@@ -1987,7 +2058,10 @@ body.soi .stopHehku {
           var n = document.createElement('span');
           n.className = 'nimi spray';
           n.textContent = p.name;
-          el.appendChild(n);
+          var ala = document.createElement('div');
+          ala.className = 'nimiAla';
+          ala.appendChild(n);
+          el.appendChild(ala);
 
           el.appendChild(meta(slotName(i), buffers[p.id] ? fmt(buffers[p.id].duration) : '···', true));
 

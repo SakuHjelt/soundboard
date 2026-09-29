@@ -1,6 +1,6 @@
 // Pitää sovelluksen käytettävänä myös ilman nettiä.
 // Hakee ensin netistä (jotta päivitykset tulevat), muuten käyttää välimuistia.
-var CACHE = 'soundboard-d13';
+var CACHE = 'soundboard-d14';
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(['./', 'index.html']); }));
